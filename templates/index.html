@@ -2,657 +2,1626 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>AI CodeSecure | Website Security Scanner</title>
+    <title>SecureCode AI | Code Security Verification</title>
 
     <style>
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* =====================================================
+           GLOBAL
+        ===================================================== */
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #07111f;
-            color: white;
-            min-height: 100vh;
+        html{
+            scroll-behavior:smooth;
         }
 
-        /* =========================
+        body{
+            font-family:Inter,Arial,Helvetica,sans-serif;
+            background:#f7f1e8;
+            color:#34251e;
+            overflow-x:hidden;
+        }
+
+        a{
+            text-decoration:none;
+            color:inherit;
+        }
+
+        button,
+        input,
+        textarea,
+        select{
+            font-family:inherit;
+        }
+
+
+        /* =====================================================
+           SOFT BACKGROUND
+        ===================================================== */
+
+        body::before{
+            content:"";
+            position:fixed;
+            inset:0;
+            pointer-events:none;
+            z-index:-1;
+
+            background-image:
+                linear-gradient(rgba(111,69,50,.035) 1px,transparent 1px),
+                linear-gradient(90deg,rgba(111,69,50,.035) 1px,transparent 1px);
+
+            background-size:45px 45px;
+        }
+
+
+        /* =====================================================
            NAVBAR
-        ========================= */
+        ===================================================== */
 
-        .navbar {
-            width: 100%;
-            padding: 20px 8%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #1c2a3a;
-            background: #07111f;
+        .navbar{
+            position:sticky;
+            top:0;
+            z-index:1000;
+
+            min-height:74px;
+
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+
+            padding:0 6%;
+
+            background:rgba(255,250,244,.92);
+            backdrop-filter:blur(18px);
+
+            border-bottom:1px solid #e5d8c9;
+
+            box-shadow:0 5px 25px rgba(82,52,36,.05);
         }
 
-        .logo {
-            font-size: 25px;
-            font-weight: bold;
-            color: #38bdf8;
-            letter-spacing: 0.5px;
+
+        .brand{
+            display:flex;
+            align-items:center;
+            gap:10px;
+
+            font-size:19px;
+            font-weight:900;
+            letter-spacing:.5px;
+
+            color:#3c291f;
+
+            flex-shrink:0;
         }
 
-        .logo span {
-            color: white;
+
+        .brand-icon{
+            width:36px;
+            height:36px;
+
+            display:flex;
+            align-items:center;
+            justify-content:center;
+
+            border:1px solid #8b5e45;
+            border-radius:10px;
+
+            color:#754936;
+
+            background:#f4e8da;
+
+            box-shadow:0 5px 15px rgba(111,69,50,.10);
         }
 
-        .nav-badge {
-            padding: 8px 15px;
-            border: 1px solid #1e3a52;
-            border-radius: 20px;
-            color: #9caec2;
-            font-size: 13px;
+
+        .brand span{
+            color:#754936;
         }
 
-        /* =========================
+
+        .nav-links{
+            display:flex;
+            align-items:center;
+            justify-content:flex-end;
+
+            gap:20px;
+
+            flex-wrap:wrap;
+        }
+
+
+        .nav-links a{
+            color:#765f50;
+            font-size:13px;
+            font-weight:600;
+
+            transition:.25s;
+        }
+
+
+        .nav-links a:hover{
+            color:#754936;
+        }
+
+
+        /* =====================================================
+           NAV BUTTONS
+        ===================================================== */
+
+        .launch{
+            padding:10px 17px;
+
+            border:1px solid #754936;
+            border-radius:8px;
+
+            color:#754936 !important;
+
+            background:#fffaf4;
+        }
+
+
+        .launch:hover{
+            background:#754936;
+            color:#fffaf4 !important;
+
+            box-shadow:0 8px 25px rgba(111,69,50,.20);
+        }
+
+
+        .nav-login{
+            padding:9px 14px;
+
+            border:1px solid #cdb9a7;
+            border-radius:8px;
+
+            background:#fffaf4;
+
+            color:#63483a !important;
+        }
+
+
+        .nav-login:hover{
+            border-color:#754936;
+            color:#754936 !important;
+        }
+
+
+        .nav-register{
+            padding:10px 15px;
+
+            border-radius:8px;
+
+            background:#754936;
+
+            color:#fffaf4 !important;
+
+            font-weight:800 !important;
+
+            box-shadow:0 6px 18px rgba(111,69,50,.12);
+        }
+
+
+        .nav-register:hover{
+            background:#633b2b;
+            color:#fffaf4 !important;
+
+            transform:translateY(-1px);
+        }
+
+
+        .nav-dashboard{
+            padding:9px 14px;
+
+            border:1px solid #9b6b4e;
+            border-radius:8px;
+
+            background:#f4e8da;
+
+            color:#754936 !important;
+
+            font-weight:800 !important;
+        }
+
+
+        .nav-dashboard:hover{
+            background:#754936;
+            color:#fffaf4 !important;
+        }
+
+
+        .nav-logout{
+            padding:9px 13px;
+
+            border:1px solid #d6c3b2;
+            border-radius:8px;
+
+            color:#806d60 !important;
+
+            background:#fffaf4;
+        }
+
+
+        .nav-logout:hover{
+            border-color:#a47755;
+            color:#633b2b !important;
+        }
+
+
+        /* =====================================================
            HERO
-        ========================= */
+        ===================================================== */
 
-        .hero {
-            max-width: 1100px;
-            margin: auto;
-            padding: 75px 25px 50px;
-            text-align: center;
+        .hero{
+            min-height:590px;
+
+            display:flex;
+            align-items:center;
+
+            padding:80px 8%;
+
+            position:relative;
+
+            background:
+                radial-gradient(
+                    circle at 80% 25%,
+                    rgba(180,133,94,.18),
+                    transparent 30%
+                ),
+
+                radial-gradient(
+                    circle at 15% 75%,
+                    rgba(111,69,50,.10),
+                    transparent 30%
+                );
         }
 
-        .tag {
-            display: inline-block;
-            padding: 8px 15px;
-            border-radius: 20px;
-            background: #0d2134;
-            color: #38bdf8;
-            font-size: 13px;
-            margin-bottom: 25px;
+
+        .hero-content{
+            max-width:1000px;
         }
 
-        h1 {
-            font-size: 58px;
-            line-height: 1.1;
-            margin-bottom: 22px;
+
+        .system-status{
+            display:inline-flex;
+            align-items:center;
+            gap:9px;
+
+            padding:7px 13px;
+
+            border:1px solid #d9c6b4;
+            border-radius:30px;
+
+            background:#fffaf4;
+
+            color:#55705b;
+
+            font-size:11px;
+            font-weight:800;
+
+            letter-spacing:.8px;
+
+            margin-bottom:25px;
+
+            box-shadow:0 4px 15px rgba(83,52,36,.05);
         }
 
-        h1 .ai {
-            color: #38bdf8;
+
+        .status-dot{
+            width:7px;
+            height:7px;
+
+            border-radius:50%;
+
+            background:#557d5e;
+
+            box-shadow:0 0 10px rgba(85,125,94,.35);
         }
 
-        h1 .secure {
-            color: white;
+
+        .hero h1{
+            font-size:clamp(45px,7vw,82px);
+
+            line-height:1;
+
+            letter-spacing:-4px;
+
+            margin-bottom:25px;
         }
 
-        h1 .tagline {
-            color: #38bdf8;
+
+        .white{
+            color:#3b2a22;
         }
 
-        .subtitle {
-            max-width: 750px;
-            margin: auto;
-            color: #9caec2;
-            font-size: 18px;
-            line-height: 1.7;
+
+        .cyan{
+            color:#754936;
         }
 
-        /* =========================
-           SCANNER BOX
-        ========================= */
 
-        .scanner-box {
-            max-width: 780px;
-            margin: 45px auto 0;
-            padding: 35px;
-            border: 1px solid #263d53;
-            border-radius: 18px;
-            background: #0b1929;
-            box-shadow: 0 0 35px rgba(56, 189, 248, 0.05);
+        .purple{
+            color:#a47755;
         }
 
-        /* =========================
-           TABS
-        ========================= */
 
-        .scanner-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
+        .hero-description{
+            max-width:730px;
+
+            color:#756257;
+
+            font-size:17px;
+
+            line-height:1.8;
+
+            margin-bottom:32px;
         }
 
-        .tab-btn {
-            flex: 1;
-            padding: 13px;
-            border: 1px solid #31506b;
-            background: #0d1c2d;
-            color: #9caec2;
-            border-radius: 9px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: bold;
-            transition: 0.2s;
+
+        .hero-actions{
+            display:flex;
+            gap:13px;
+
+            flex-wrap:wrap;
         }
 
-        .tab-btn:hover {
-            background: #13283b;
+
+        .btn-primary{
+            padding:14px 23px;
+
+            background:#754936;
+            color:#fffaf4;
+
+            border-radius:9px;
+
+            font-size:14px;
+            font-weight:900;
+
+            transition:.25s;
+
+            box-shadow:0 8px 25px rgba(111,69,50,.15);
         }
 
-        .tab-btn.active {
-            background: #38bdf8;
-            color: #04111c;
-            border-color: #38bdf8;
+
+        .btn-primary:hover{
+            transform:translateY(-3px);
+
+            background:#633b2b;
+
+            box-shadow:
+                0 12px 35px rgba(111,69,50,.25);
         }
 
-        /* =========================
-           SCANNER SECTIONS
-        ========================= */
 
-        .scanner-section {
-            display: none;
+        .btn-secondary{
+            padding:14px 23px;
+
+            border:1px solid #cdb9a7;
+
+            border-radius:9px;
+
+            color:#63483a;
+
+            background:#fffaf4;
+
+            font-size:14px;
+
+            transition:.25s;
         }
 
-        .scanner-section.active {
-            display: block;
+
+        .btn-secondary:hover{
+            border-color:#754936;
+            color:#754936;
+
+            transform:translateY(-2px);
         }
 
-        .upload-icon {
-            font-size: 42px;
-            margin-bottom: 15px;
+
+        /* =====================================================
+           QUICK STATS
+        ===================================================== */
+
+        .quick-stats{
+            margin-top:55px;
+
+            display:grid;
+
+            grid-template-columns:
+                repeat(4,1fr);
+
+            max-width:850px;
+
+            gap:12px;
         }
 
-        .scanner-section h2 {
-            margin-bottom: 10px;
+
+        .stat{
+            padding:18px;
+
+            background:#fffaf4;
+
+            border:1px solid #e1d2c2;
+
+            border-radius:11px;
+
+            transition:.25s;
+
+            box-shadow:0 5px 20px rgba(82,52,36,.04);
         }
 
-        .scanner-section p {
-            color: #8fa2b5;
-            margin-bottom: 25px;
-            line-height: 1.6;
+
+        .stat:hover{
+            border-color:#9b6b4e;
+
+            transform:translateY(-3px);
+
+            box-shadow:0 10px 25px rgba(111,69,50,.10);
         }
 
-        /* =========================
-           FILE UPLOAD
-        ========================= */
 
-        .file-input {
-            display: none;
+        .stat-number{
+            font-size:24px;
+
+            font-weight:900;
+
+            color:#754936;
         }
 
-        .choose-btn {
-            display: inline-block;
-            background: #13283b;
-            color: #d8e6f3;
-            border: 1px solid #31506b;
-            padding: 12px 22px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-bottom: 15px;
+
+        .stat-label{
+            color:#927b6c;
+
+            font-size:11px;
+
+            margin-top:3px;
         }
 
-        .choose-btn:hover {
-            background: #18344d;
+
+        /* =====================================================
+           SECTION
+        ===================================================== */
+
+        .section{
+            padding:85px 8%;
         }
 
-        .file-name {
-            display: block;
-            color: #38bdf8;
-            font-size: 14px;
-            margin: 10px 0 20px;
-            min-height: 18px;
+
+        .section-heading{
+            margin-bottom:38px;
         }
 
-        /* =========================
-           CODE TEXTAREA
-        ========================= */
 
-        .code-textarea {
-            width: 100%;
-            min-height: 280px;
-            resize: vertical;
-            background: #06101d;
-            border: 1px solid #29445c;
-            border-radius: 10px;
-            padding: 18px;
-            color: #dbeafe;
-            font-family: Consolas, Monaco, monospace;
-            font-size: 14px;
-            line-height: 1.6;
-            outline: none;
+        .eyebrow{
+            color:#916345;
+
+            font-size:11px;
+
+            font-weight:900;
+
+            letter-spacing:2px;
+
+            margin-bottom:10px;
         }
 
-        .code-textarea:focus {
-            border-color: #38bdf8;
+
+        .section-heading h2{
+            font-size:38px;
+
+            letter-spacing:-1.5px;
+
+            margin-bottom:8px;
+
+            color:#392920;
         }
 
-        .code-textarea::placeholder {
-            color: #60758a;
+
+        .section-heading p{
+            color:#806c5e;
+
+            max-width:650px;
+
+            font-size:14px;
         }
 
-        /* =========================
-           LANGUAGE
-        ========================= */
 
-        .language-row {
-            display: flex;
-            gap: 12px;
-            margin-top: 15px;
-            margin-bottom: 18px;
+        /* =====================================================
+           AUDIT CONSOLE
+        ===================================================== */
+
+        .console{
+            border:1px solid #dfcfbf;
+
+            background:#fffaf4;
+
+            border-radius:17px;
+
+            overflow:hidden;
+
+            box-shadow:
+                0 25px 70px rgba(82,52,36,.10);
         }
 
-        .language-select {
-            flex: 1;
-            background: #0d1c2d;
-            border: 1px solid #31506b;
-            color: #dbeafe;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
+
+        .console-header{
+            padding:17px 22px;
+
+            border-bottom:1px solid #e4d7ca;
+
+            display:flex;
+
+            align-items:center;
+
+            justify-content:space-between;
+
+            background:#f8efe5;
         }
 
-        .language-select:focus {
-            border-color: #38bdf8;
+
+        .terminal-dots{
+            display:flex;
+
+            gap:6px;
         }
 
-        /* =========================
-           SCAN BUTTON
-        ========================= */
 
-        .scan-btn {
-            background: #38bdf8;
-            color: #04111c;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 9px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
+        .terminal-dots i{
+            width:8px;
+            height:8px;
+
+            border-radius:50%;
+
+            background:#bda996;
         }
 
-        .scan-btn:hover {
-            opacity: 0.85;
-            transform: translateY(-1px);
+
+        .console-title{
+            color:#866f60;
+
+            font-family:monospace;
+
+            font-size:12px;
         }
 
-        /* =========================
-           SECURITY NOTE
-        ========================= */
 
-        .security-note {
-            margin-top: 18px;
-            color: #718398;
-            font-size: 12px;
+        .console-status{
+            color:#557d5e;
+
+            font-size:10px;
+
+            font-weight:900;
         }
 
-        /* =========================
-           FEATURES
-        ========================= */
 
-        .features {
-            max-width: 1100px;
-            margin: 30px auto 60px;
-            padding: 0 25px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 18px;
+        .audit-grid{
+            display:grid;
+
+            grid-template-columns:1fr 1fr;
+
+            gap:1px;
+
+            background:#e4d7ca;
         }
 
-        .feature {
-            background: #0b1929;
-            border: 1px solid #1c2a3a;
-            border-radius: 14px;
-            padding: 25px;
-            transition: 0.2s;
+
+        .audit-card{
+            background:#fffaf4;
+
+            padding:32px;
+
+            min-height:300px;
+
+            transition:.25s;
         }
 
-        .feature:hover {
-            border-color: #31506b;
-            transform: translateY(-3px);
+
+        .audit-card:hover{
+            background:#fffdf9;
         }
 
-        .feature-icon {
-            font-size: 30px;
-            margin-bottom: 12px;
+
+        .audit-icon{
+            width:48px;
+            height:48px;
+
+            display:flex;
+
+            align-items:center;
+
+            justify-content:center;
+
+            font-size:24px;
+
+            color:#754936;
+
+            background:#f2e4d7;
+
+            border:1px solid #dfcbbb;
+
+            border-radius:12px;
+
+            margin-bottom:18px;
         }
 
-        .feature h3 {
-            margin-bottom: 10px;
-            color: #dbeafe;
+
+        .audit-card h3{
+            font-size:21px;
+
+            margin-bottom:9px;
+
+            color:#3d2b22;
         }
 
-        .feature p {
-            color: #8497aa;
-            font-size: 14px;
-            line-height: 1.6;
+
+        .audit-card p{
+            color:#806d60;
+
+            font-size:13px;
+
+            line-height:1.7;
+
+            margin-bottom:22px;
         }
 
-        /* =========================
-           ADVANTAGES
-        ========================= */
 
-        .advantages {
-            max-width: 1100px;
-            margin: 0 auto 60px;
-            padding: 0 25px;
+        .file-input{
+            width:100%;
+
+            padding:13px;
+
+            background:#f9f2ea;
+
+            border:1px dashed #c9b4a1;
+
+            border-radius:8px;
+
+            color:#806d60;
+
+            margin-bottom:12px;
+
+            cursor:pointer;
         }
 
-        .section-title {
-            text-align: center;
-            margin-bottom: 25px;
+
+        .file-input:hover{
+            border-color:#754936;
         }
 
-        .section-title h2 {
-            font-size: 30px;
-            margin-bottom: 8px;
+
+        .scan-button{
+            width:100%;
+
+            border:0;
+
+            cursor:pointer;
+
+            padding:13px;
+
+            background:#754936;
+
+            color:#fffaf4;
+
+            border-radius:8px;
+
+            font-size:13px;
+
+            font-weight:900;
+
+            transition:.25s;
         }
 
-        .section-title p {
-            color: #8497aa;
+
+        .scan-button:hover{
+            background:#633b2b;
+
+            box-shadow:
+                0 8px 25px rgba(111,69,50,.20);
+
+            transform:translateY(-1px);
         }
 
-        .advantage-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 18px;
+
+        textarea{
+            width:100%;
+
+            min-height:150px;
+
+            padding:15px;
+
+            resize:vertical;
+
+            outline:none;
+
+            border:1px solid #d8c7b7;
+
+            border-radius:8px;
+
+            background:#f9f2ea;
+
+            color:#4d382d;
+
+            font-family:monospace;
+
+            font-size:12px;
         }
 
-        .advantage {
-            background: #0b1929;
-            border: 1px solid #1c2a3a;
-            border-radius: 14px;
-            padding: 22px;
+
+        textarea::placeholder{
+            color:#a18b7c;
         }
 
-        .advantage h3 {
-            color: #38bdf8;
-            margin-bottom: 8px;
+
+        textarea:focus{
+            border-color:#9b6b4e;
+
+            box-shadow:0 0 0 3px rgba(155,107,78,.08);
         }
 
-        .advantage p {
-            color: #8497aa;
-            font-size: 14px;
-            line-height: 1.6;
+
+        select{
+            width:100%;
+
+            margin-top:10px;
+
+            padding:11px;
+
+            background:#f9f2ea;
+
+            color:#4d382d;
+
+            border:1px solid #d8c7b7;
+
+            border-radius:8px;
+
+            outline:none;
         }
 
-        /* =========================
-           TEAM SECTION
-        ========================= */
 
-        .team-section {
-            max-width: 1100px;
-            margin: 0 auto 60px;
-            padding: 0 25px;
+        select:focus{
+            border-color:#9b6b4e;
         }
 
-        .team-card {
-            background: linear-gradient(
-                135deg,
-                #0b1929,
-                #0d2134
-            );
-            border: 1px solid #31506b;
-            border-radius: 18px;
-            padding: 35px;
-            text-align: center;
+
+        .security-note{
+            padding:15px 22px;
+
+            border-top:1px solid #e4d7ca;
+
+            color:#806d60;
+
+            background:#f8efe5;
+
+            font-size:11px;
+
+            font-family:monospace;
         }
 
-        .team-icon {
-            font-size: 45px;
-            margin-bottom: 12px;
+
+        .security-note span{
+            color:#557d5e;
         }
 
-        .team-card h2 {
-            color: #38bdf8;
-            margin-bottom: 10px;
+
+        /* =====================================================
+           LOGIN PROMPT
+        ===================================================== */
+
+        .login-required-note{
+            margin-top:12px;
+
+            padding:10px 12px;
+
+            border:1px solid #dfcfbf;
+
+            border-radius:8px;
+
+            background:#f8efe5;
+
+            color:#806d60;
+
+            font-size:11px;
+
+            line-height:1.5;
         }
 
-        .team-card .team-size {
-            color: #dbeafe;
-            font-size: 17px;
-            margin-bottom: 20px;
+
+        .login-required-note a{
+            color:#754936;
+
+            font-weight:800;
         }
 
-        .leader-box {
-            display: inline-block;
-            padding: 18px 30px;
-            background: #07111f;
-            border: 1px solid #29445c;
-            border-radius: 12px;
+
+        /* =====================================================
+           PIPELINE
+        ===================================================== */
+
+        .pipeline{
+            display:grid;
+
+            grid-template-columns:
+                repeat(6,1fr);
+
+            gap:12px;
         }
 
-        .leader-label {
-            display: block;
-            color: #8497aa;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 7px;
+
+        .pipeline-card{
+            padding:22px;
+
+            min-height:175px;
+
+            background:#fffaf4;
+
+            border:1px solid #e0d0c0;
+
+            border-radius:12px;
+
+            transition:.25s;
+
+            box-shadow:0 5px 18px rgba(82,52,36,.035);
         }
 
-        .leader-name {
-            font-size: 21px;
-            font-weight: bold;
-            color: white;
+
+        .pipeline-card:hover{
+            transform:translateY(-5px);
+
+            border-color:#9b6b4e;
+
+            box-shadow:
+                0 15px 40px rgba(111,69,50,.12);
         }
 
-        /* =========================
-           CTA
-        ========================= */
 
-        .cta {
-            max-width: 1050px;
-            margin: 0 auto 50px;
-            padding: 35px 25px;
-            text-align: center;
-            border: 1px solid #31506b;
-            border-radius: 18px;
-            background: #0b1929;
+        .pipeline-number{
+            color:#916345;
+
+            font-family:monospace;
+
+            font-size:11px;
+
+            font-weight:bold;
         }
 
-        .cta h2 {
-            font-size: 30px;
-            margin-bottom: 12px;
+
+        .pipeline-card h3{
+            font-size:16px;
+
+            margin:20px 0 8px;
+
+            color:#422f25;
         }
 
-        .cta h2 span {
-            color: #38bdf8;
+
+        .pipeline-card p{
+            color:#806d60;
+
+            font-size:12px;
+
+            line-height:1.6;
         }
 
-        .cta p {
-            color: #8497aa;
-            line-height: 1.6;
+
+        /* =====================================================
+           FEATURE GRID
+        ===================================================== */
+
+        .feature-grid{
+            display:grid;
+
+            grid-template-columns:
+                repeat(3,1fr);
+
+            gap:15px;
         }
 
-        /* =========================
+
+        .feature-card{
+            padding:28px;
+
+            background:#fffaf4;
+
+            border:1px solid #e0d0c0;
+
+            border-radius:13px;
+
+            transition:.25s;
+
+            box-shadow:0 5px 20px rgba(82,52,36,.035);
+        }
+
+
+        .feature-card:hover{
+            transform:translateY(-5px);
+
+            border-color:#9b6b4e;
+
+            box-shadow:
+                0 15px 40px rgba(111,69,50,.11);
+        }
+
+
+        .feature-icon{
+            width:48px;
+            height:48px;
+
+            display:flex;
+
+            align-items:center;
+
+            justify-content:center;
+
+            font-size:23px;
+
+            margin-bottom:17px;
+
+            color:#754936;
+
+            background:#f2e4d7;
+
+            border:1px solid #dfcbbb;
+
+            border-radius:12px;
+        }
+
+
+        .feature-card h3{
+            margin-bottom:8px;
+
+            font-size:17px;
+
+            color:#422f25;
+        }
+
+
+        .feature-card p{
+            color:#806d60;
+
+            font-size:13px;
+
+            line-height:1.7;
+        }
+
+
+        .learn{
+            display:block;
+
+            margin-top:18px;
+
+            color:#754936;
+
+            font-size:11px;
+
+            font-weight:800;
+        }
+
+
+        /* =====================================================
+           TRUST
+        ===================================================== */
+
+        .trust-grid{
+            display:grid;
+
+            grid-template-columns:1fr 1fr;
+
+            gap:15px;
+        }
+
+
+        .trust-card{
+            padding:35px;
+
+            border:1px solid #dfcfbf;
+
+            border-radius:14px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #fffaf4,
+                    #f7ede2
+                );
+
+            box-shadow:0 8px 25px rgba(82,52,36,.05);
+
+            transition:.25s;
+        }
+
+
+        .trust-card:hover{
+            transform:translateY(-4px);
+
+            border-color:#9b6b4e;
+        }
+
+
+        .trust-card h3{
+            font-size:23px;
+
+            margin-bottom:12px;
+
+            color:#3d2b22;
+        }
+
+
+        .trust-card p{
+            color:#806d60;
+
+            font-size:13px;
+
+            line-height:1.8;
+        }
+
+
+        .trust-link{
+            display:inline-block;
+
+            margin-top:20px;
+
+            color:#754936;
+
+            font-size:12px;
+
+            font-weight:bold;
+        }
+
+
+        /* =====================================================
+           DISCLAIMER
+        ===================================================== */
+
+        .disclaimer{
+            margin-top:50px;
+
+            padding:20px;
+
+            border:1px solid #ddc8a8;
+
+            background:#fbf3e5;
+
+            border-radius:10px;
+
+            color:#806d60;
+
+            font-size:12px;
+
+            line-height:1.7;
+        }
+
+
+        .disclaimer strong{
+            color:#684b37;
+        }
+
+
+        /* =====================================================
            FOOTER
-        ========================= */
+        ===================================================== */
 
-        footer {
-            text-align: center;
-            padding: 25px;
-            border-top: 1px solid #1c2a3a;
-            color: #64778b;
-            font-size: 13px;
+        footer{
+            border-top:1px solid #dfd0c2;
+
+            padding:45px 8%;
+
+            display:grid;
+
+            grid-template-columns:
+                1.5fr 1fr 1fr;
+
+            gap:30px;
+
+            background:#efe4d8;
+
+            color:#806d60;
+
+            font-size:12px;
         }
 
-        footer strong {
-            color: #38bdf8;
+
+        .footer-brand{
+            color:#3e2c23;
+
+            font-size:16px;
+
+            font-weight:900;
+
+            margin-bottom:8px;
         }
 
-        /* =========================
-           MOBILE
-        ========================= */
 
-        @media (max-width: 700px) {
+        .footer-brand span{
+            color:#754936;
+        }
 
-            h1 {
-                font-size: 40px;
+
+        footer h4{
+            color:#4d382d;
+
+            margin-bottom:13px;
+
+            font-size:12px;
+        }
+
+
+        footer a{
+            display:block;
+
+            margin-bottom:8px;
+
+            color:#806d60;
+
+            transition:.2s;
+        }
+
+
+        footer a:hover{
+            color:#754936;
+        }
+
+
+        .copyright{
+            border-top:1px solid #ddcdbd;
+
+            padding:18px 8%;
+
+            background:#e8dbcd;
+
+            color:#927b6c;
+
+            font-size:10px;
+
+            font-family:monospace;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media(max-width:1200px){
+
+            .nav-links{
+                gap:14px;
             }
 
-            .features {
-                grid-template-columns: 1fr;
+            .nav-links a{
+                font-size:12px;
             }
 
-            .advantage-grid {
-                grid-template-columns: 1fr;
+        }
+
+
+        @media(max-width:1000px){
+
+            .nav-links a:not(.launch):not(.nav-login):not(.nav-register):not(.nav-dashboard):not(.nav-logout){
+                display:none;
             }
 
-            .scanner-box {
-                padding: 25px 18px;
+            .pipeline{
+                grid-template-columns:
+                    repeat(3,1fr);
             }
 
-            .scanner-tabs {
-                flex-direction: column;
+        }
+
+
+        @media(max-width:800px){
+
+            .navbar{
+                padding:12px 5%;
+                gap:15px;
             }
 
-            .language-row {
-                flex-direction: column;
+            .nav-links{
+                gap:8px;
             }
 
-            .navbar {
-                padding: 18px 5%;
+            .quick-stats{
+                grid-template-columns:
+                    repeat(2,1fr);
             }
 
-            .nav-badge {
-                font-size: 10px;
-                padding: 7px 10px;
+
+            .audit-grid{
+                grid-template-columns:1fr;
             }
 
-            .logo {
-                font-size: 20px;
+
+            .feature-grid{
+                grid-template-columns:1fr 1fr;
             }
 
-            .hero {
-                padding-top: 55px;
+
+            .trust-grid{
+                grid-template-columns:1fr;
             }
 
-            .subtitle {
-                font-size: 16px;
+
+            footer{
+                grid-template-columns:1fr 1fr;
             }
 
-            .leader-name {
-                font-size: 17px;
+        }
+
+
+        @media(max-width:600px){
+
+            .navbar{
+                padding:12px 5%;
+                align-items:flex-start;
             }
+
+            .brand{
+                font-size:16px;
+            }
+
+            .brand-icon{
+                width:32px;
+                height:32px;
+            }
+
+            .nav-links{
+                justify-content:flex-end;
+                gap:6px;
+            }
+
+            .nav-links a{
+                font-size:10px;
+            }
+
+            .nav-login,
+            .nav-register,
+            .nav-dashboard,
+            .nav-logout{
+                padding:7px 9px;
+            }
+
+            .launch{
+                padding:8px 10px;
+            }
+
+
+            .hero{
+                padding:65px 5%;
+            }
+
+
+            .section{
+                padding:65px 5%;
+            }
+
+
+            .hero h1{
+                letter-spacing:-2px;
+            }
+
+
+            .quick-stats{
+                grid-template-columns:
+                    1fr 1fr;
+            }
+
+
+            .pipeline{
+                grid-template-columns:1fr;
+            }
+
+
+            .feature-grid{
+                grid-template-columns:1fr;
+            }
+
+
+            footer{
+                grid-template-columns:1fr;
+            }
+
         }
 
     </style>
+
 </head>
 
 
 <body>
 
 
-    <!-- =========================
-         NAVBAR
-    ========================= -->
+<!-- =====================================================
+     NAVBAR
+===================================================== -->
 
-    <nav class="navbar">
+<nav class="navbar">
 
-        <div class="logo">
-            🛡 <span class="ai">AI</span> CodeSecure
+    <a href="/" class="brand">
+
+        <div class="brand-icon">
+            ◈
         </div>
 
-        <div class="nav-badge">
-            AI-Assisted Security Analysis
+        <div>
+            <span>SECURE</span>CODE AI
         </div>
 
-    </nav>
+    </a>
 
 
-    <!-- =========================
-         HERO
-    ========================= -->
+    <div class="nav-links">
 
-    <section class="hero">
+        <a href="/audit">
+            Security Audit
+        </a>
 
-        <div class="tag">
-            🔐 AI-Powered Security Verification for Websites
+        <a href="/ai-engine">
+            AI Engine
+        </a>
+
+        <a href="/ml">
+            ML Model
+        </a>
+
+        <a href="/clustering">
+            Intelligence
+        </a>
+
+        <a href="/blockchain">
+            Blockchain
+        </a>
+
+        <a href="/about">
+            Architecture
+        </a>
+
+
+        <!-- =================================================
+             AUTHENTICATION NAVIGATION
+        ================================================== -->
+
+        {% if session.get('user_id') %}
+
+            <a href="/dashboard" class="nav-dashboard">
+                Dashboard
+            </a>
+
+            <a href="/logout" class="nav-logout">
+                Logout
+            </a>
+
+        {% else %}
+
+            <a href="/login" class="nav-login">
+                Login
+            </a>
+
+            <a href="/register" class="nav-register">
+                Create Account
+            </a>
+
+        {% endif %}
+
+
+        <a href="/audit" class="launch">
+            Launch Audit
+        </a>
+
+    </div>
+
+</nav>
+
+
+
+<!-- =====================================================
+     HERO
+===================================================== -->
+
+<section class="hero">
+
+    <div class="hero-content">
+
+
+        <div class="system-status">
+
+            <span class="status-dot"></span>
+
+            SECURECODE AI • SECURITY ENGINE ONLINE
+
         </div>
 
 
         <h1>
 
-            <span class="ai">AI</span>
-            <span class="secure"> CodeSecure</span>
+            <span class="white">
+                AI-Powered
+            </span>
+
             <br>
 
-            <span class="tagline">
-             Verify the Code. Protect the Business.
+            <span class="cyan">
+                Code Security
+            </span>
+
+            <br>
+
+            <span class="purple">
+                Verification.
             </span>
 
         </h1>
 
 
-        <p class="subtitle">
+        <p class="hero-description">
 
-            AI CodeSecure analyzes website source code for
-            common security vulnerabilities, exposed secrets,
-            suspicious scripts and risky configurations before
-            your website goes live.
+            SecureCode AI analyzes website source code,
+            detects suspicious security patterns, classifies
+            potential vulnerabilities and generates a
+            cryptographic security assessment.
 
         </p>
 
 
-        <!-- =========================
-             SCANNER BOX
-        ========================= -->
+        <div class="hero-actions">
 
-        <div class="scanner-box">
+            <a href="/audit" class="btn-primary">
+                Launch Security Audit →
+            </a>
+
+            <a href="/ai-engine" class="btn-secondary">
+                Explore AI Engine
+            </a>
+
+            {% if session.get('user_id') %}
+
+                <a href="/dashboard" class="btn-secondary">
+                    Open My Dashboard →
+                </a>
+
+            {% endif %}
+
+        </div>
 
 
-            <!-- TABS -->
+        <!-- QUICK STATS -->
 
-            <div class="scanner-tabs">
-
-                <button
-                    type="button"
-                    class="tab-btn active"
-                    onclick="showScanner('uploadScanner', this)"
-                >
-                    📦 Upload Project
-                </button>
+        <div class="quick-stats">
 
 
-                <button
-                    type="button"
-                    class="tab-btn"
-                    onclick="showScanner('codeScanner', this)"
-                >
-                    📝 Paste Code
-                </button>
+            <a href="/audit" class="stat">
+
+                <div class="stat-number">
+                    01
+                </div>
+
+                <div class="stat-label">
+                    STATIC ANALYSIS
+                </div>
+
+            </a>
+
+
+            <a href="/ml" class="stat">
+
+                <div class="stat-number">
+                    RF
+                </div>
+
+                <div class="stat-label">
+                    RISK CLASSIFICATION
+                </div>
+
+            </a>
+
+
+            <a href="/clustering" class="stat">
+
+                <div class="stat-number">
+                    AI
+                </div>
+
+                <div class="stat-label">
+                    VULNERABILITY INTELLIGENCE
+                </div>
+
+            </a>
+
+
+            <a href="/blockchain" class="stat">
+
+                <div class="stat-number">
+                    SHA
+                </div>
+
+                <div class="stat-label">
+                    INTEGRITY PROOF
+                </div>
+
+            </a>
+
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     SECURITY AUDIT CONSOLE
+===================================================== -->
+
+<section class="section">
+
+    <div class="section-heading">
+
+        <div class="eyebrow">
+            SECURITY CONSOLE
+        </div>
+
+        <h2>
+            Analyze Your Code
+        </h2>
+
+        <p>
+            Upload a website project or paste source code
+            to start a SecureCode AI security assessment.
+        </p>
+
+    </div>
+
+
+    <div class="console">
+
+
+        <div class="console-header">
+
+            <div class="terminal-dots">
+
+                <i></i>
+                <i></i>
+                <i></i>
 
             </div>
 
 
-            <!-- =========================
-                 ZIP SCANNER
-            ========================= -->
+            <div class="console-title">
+                securecode-ai://security-console
+            </div>
 
-            <div
-                id="uploadScanner"
-                class="scanner-section active"
-            >
 
-                <div class="upload-icon">
-                    📁
+            <div class="console-status">
+                ● READY
+            </div>
+
+        </div>
+
+
+        <div class="audit-grid">
+
+
+            <!-- ZIP AUDIT -->
+
+            <div class="audit-card">
+
+                <div class="audit-icon">
+                    ⬡
                 </div>
 
-
-                <h2>
-                    Scan Your Website
-                </h2>
-
+                <h3>
+                    Website Project Audit
+                </h3>
 
                 <p>
-                    Upload your website project as a ZIP file
-                    to analyze multiple source files.
+                    Upload your website project as a ZIP.
+                    SecureCode AI will inspect supported source
+                    files and identify suspicious security patterns.
                 </p>
 
 
@@ -662,67 +1631,64 @@
                     enctype="multipart/form-data"
                 >
 
-                    <label
-                        for="project"
-                        class="choose-btn"
-                    >
-                        📂 Choose Website ZIP
-                    </label>
-
-
                     <input
-                        type="file"
-                        id="project"
-                        name="project"
                         class="file-input"
+                        type="file"
+                        name="project"
                         accept=".zip"
                         required
                     >
 
 
-                    <span
-                        id="fileName"
-                        class="file-name"
-                    >
-                        No file selected
-                    </span>
-
-
                     <button
                         type="submit"
-                        class="scan-btn"
+                        class="scan-button"
                     >
-                        🔍 Start Security Scan
+                        Scan Website Project →
                     </button>
 
                 </form>
 
+
+                {% if not session.get('user_id') %}
+
+                    <div class="login-required-note">
+
+                        🔐 Please
+                        <a href="/login">
+                            login
+                        </a>
+                        or
+                        <a href="/register">
+                            create an account
+                        </a>
+                        before starting an audit.
+
+                        Your audit history will be saved to your account.
+
+                    </div>
+
+                {% endif %}
+
             </div>
 
 
-            <!-- =========================
-                 PASTE CODE SCANNER
-            ========================= -->
 
-            <div
-                id="codeScanner"
-                class="scanner-section"
-            >
+            <!-- CODE AUDIT -->
 
-                <div class="upload-icon">
-                    📝
+            <div class="audit-card">
+
+                <div class="audit-icon">
+                    &lt;/&gt;
                 </div>
 
-
-                <h2>
-                    Analyze Your Code
-                </h2>
-
+                <h3>
+                    Source Code Audit
+                </h3>
 
                 <p>
-                    Paste your source code below and
-                    AI CodeSecure will check it for common
-                    security risks.
+                    Paste a code snippet and run an immediate
+                    security pattern analysis.
                 </p>
 
 
@@ -733,123 +1699,277 @@
 
                     <textarea
                         name="code"
-                        class="code-textarea"
-                        placeholder="// Paste your code here...
-
-Example:
-
-const apiKey = &quot;YOUR_KEY_HERE&quot;;
-
-function loadData() {
-    return fetch(&quot;http://example.com/data&quot;);
-}"
+                        placeholder="// Paste source code here..."
                         required
                     ></textarea>
 
 
-                    <div class="language-row">
+                    <select name="language">
 
-                        <select
-                            name="language"
-                            class="language-select"
-                            required
-                        >
+                        <option>
+                            Python
+                        </option>
 
-                            <option value="">
-                                Select Programming Language
-                            </option>
+                        <option>
+                            JavaScript
+                        </option>
 
-                            <option value="HTML">
-                                HTML
-                            </option>
+                        <option>
+                            HTML
+                        </option>
 
-                            <option value="CSS">
-                                CSS
-                            </option>
+                        <option>
+                            PHP
+                        </option>
 
-                            <option value="JavaScript">
-                                JavaScript
-                            </option>
+                        <option>
+                            Java
+                        </option>
 
-                            <option value="TypeScript">
-                                TypeScript
-                            </option>
+                        <option>
+                            C
+                        </option>
 
-                            <option value="Python">
-                                Python
-                            </option>
+                        <option>
+                            C++
+                        </option>
 
-                            <option value="PHP">
-                                PHP
-                            </option>
+                        <option>
+                            SQL
+                        </option>
 
-                            <option value="Java">
-                                Java
-                            </option>
+                        <option>
+                            JSON
+                        </option>
 
-                            <option value="C">
-                                C
-                            </option>
+                        <option>
+                            Other
+                        </option>
 
-                            <option value="C++">
-                                C++
-                            </option>
+                    </select>
 
-                            <option value="C#">
-                                C#
-                            </option>
 
-                            <option value="SQL">
-                                SQL
-                            </option>
-
-                            <option value="JSON">
-                                JSON
-                            </option>
-
-                            <option value="Other">
-                                Other
-                            </option>
-
-                        </select>
-
-                    </div>
+                    <br><br>
 
 
                     <button
                         type="submit"
-                        class="scan-btn"
+                        class="scan-button"
                     >
-                        🔍 Scan Pasted Code
+                        Analyze Source Code →
                     </button>
 
                 </form>
 
-            </div>
 
+                {% if not session.get('user_id') %}
 
-            <div class="security-note">
+                    <div class="login-required-note">
 
-                🔒 Code is analyzed as text and is not executed.
+                        🔐 Login is required to save and view
+                        your security audit history.
+
+                        <a href="/login">
+                            Login →
+                        </a>
+
+                    </div>
+
+                {% endif %}
 
             </div>
 
         </div>
 
-    </section>
+
+        <div class="security-note">
+
+            <span>✓ SECURE PROCESSING</span>
+
+            &nbsp; Source code is analyzed as text.
+            Uploaded application code is not executed by
+            the SecureCode AI scanner.
+
+        </div>
+
+    </div>
+
+</section>
 
 
-    <!-- =========================
-         FEATURES
-    ========================= -->
 
-    <section class="features">
+<!-- =====================================================
+     AI PIPELINE
+===================================================== -->
+
+<section class="section">
+
+    <div class="section-heading">
+
+        <div class="eyebrow">
+            SECURITY PIPELINE
+        </div>
+
+        <h2>
+            From Code to Security Intelligence
+        </h2>
+
+        <p>
+            SecureCode AI processes findings through multiple
+            analysis stages before producing the final assessment.
+        </p>
+
+    </div>
 
 
-        <div class="feature">
+    <div class="pipeline">
+
+
+        <a href="/privacy" class="pipeline-card">
+
+            <div class="pipeline-number">
+                01 / SEAL
+            </div>
+
+            <h3>
+                Code Seal
+            </h3>
+
+            <p>
+                Generate a SHA-256 fingerprint for
+                integrity tracking.
+            </p>
+
+        </a>
+
+
+        <a href="/audit" class="pipeline-card">
+
+            <div class="pipeline-number">
+                02 / DETECT
+            </div>
+
+            <h3>
+                Keyword Matching
+            </h3>
+
+            <p>
+                Detect suspicious security patterns
+                inside source code.
+            </p>
+
+        </a>
+
+
+        <a href="/ml" class="pipeline-card">
+
+            <div class="pipeline-number">
+                03 / CLASSIFY
+            </div>
+
+            <h3>
+                Random Forest
+            </h3>
+
+            <p>
+                Classify detected findings by
+                potential severity.
+            </p>
+
+        </a>
+
+
+        <a href="/clustering" class="pipeline-card">
+
+            <div class="pipeline-number">
+                04 / CLUSTER
+            </div>
+
+            <h3>
+                Data Clustering
+            </h3>
+
+            <p>
+                Group similar findings into
+                vulnerability categories.
+            </p>
+
+        </a>
+
+
+        <a href="/ai-engine" class="pipeline-card">
+
+            <div class="pipeline-number">
+                05 / INTELLIGENCE
+            </div>
+
+            <h3>
+                AI Workflow
+            </h3>
+
+            <p>
+                Transform technical findings into
+                understandable security intelligence.
+            </p>
+
+        </a>
+
+
+        <a href="/blockchain" class="pipeline-card">
+
+            <div class="pipeline-number">
+                06 / PROOF
+            </div>
+
+            <h3>
+                Integrity Proof
+            </h3>
+
+            <p>
+                Create a blockchain-ready cryptographic
+                proof of the assessment.
+            </p>
+
+        </a>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     FEATURES
+===================================================== -->
+
+<section class="section">
+
+    <div class="section-heading">
+
+        <div class="eyebrow">
+            PLATFORM CAPABILITIES
+        </div>
+
+        <h2>
+            Security Intelligence Layer
+        </h2>
+
+        <p>
+            A complete workflow for understanding the security
+            posture of website source code.
+        </p>
+
+    </div>
+
+
+    <div class="feature-grid">
+
+
+        <a href="/audit" class="feature-card">
 
             <div class="feature-icon">
-                🔍
+                ◉
             </div>
 
             <h3>
@@ -857,304 +1977,286 @@ function loadData() {
             </h3>
 
             <p>
-                Identify common security weaknesses
-                in website source code before deployment.
+                Identify suspicious patterns such as exposed
+                credentials, unsafe functions, injection risks
+                and insecure communication.
             </p>
 
-        </div>
+            <span class="learn">
+                VIEW AUDIT ENGINE →
+            </span>
+
+        </a>
 
 
-        <div class="feature">
+        <a href="/ml" class="feature-card">
 
             <div class="feature-icon">
-                🔑
+                ◈
             </div>
 
             <h3>
-                Secret Detection
+                Random Forest Analysis
             </h3>
 
             <p>
-                Find exposed passwords, API keys
-                and sensitive credentials.
+                A lightweight ensemble classifier evaluates
+                detected findings and produces severity
+                predictions with confidence information.
             </p>
 
-        </div>
+            <span class="learn">
+                VIEW ML MODEL →
+            </span>
+
+        </a>
 
 
-        <div class="feature">
+        <a href="/clustering" class="feature-card">
 
             <div class="feature-icon">
-                🤖
+                ⬡
             </div>
 
             <h3>
-                AI Risk Analysis
+                Vulnerability Clustering
             </h3>
 
             <p>
-                Convert technical security findings
-                into understandable business risks
-                and recommendations.
+                Similar findings are grouped into meaningful
+                security categories for easier analysis.
             </p>
 
-        </div>
+            <span class="learn">
+                VIEW INTELLIGENCE →
+            </span>
+
+        </a>
 
 
-    </section>
+        <a href="/privacy" class="feature-card">
 
+            <div class="feature-icon">
+                🔐
+            </div>
 
-    <!-- =========================
-         ADVANTAGES
-    ========================= -->
-
-    <section class="advantages">
-
-        <div class="section-title">
-
-            <h2>
-                Why Choose <span style="color:#38bdf8;">
-                    AI CodeSecure
-                </span>?
-            </h2>
+            <h3>
+                Code Privacy & Seal
+            </h3>
 
             <p>
-                Security verification made simple for developers,
-                freelancers and business owners.
+                The system separates source-code analysis from
+                cryptographic integrity proof generation.
             </p>
 
+            <span class="learn">
+                VIEW PRIVACY MODEL →
+            </span>
+
+        </a>
+
+
+        <a href="/passport" class="feature-card">
+
+            <div class="feature-icon">
+                🎫
+            </div>
+
+            <h3>
+                Security Passport
+            </h3>
+
+            <p>
+                Generate a structured security identity containing
+                score, findings, file count and report hash.
+            </p>
+
+            <span class="learn">
+                VIEW PASSPORT →
+            </span>
+
+        </a>
+
+
+        <a href="/blockchain" class="feature-card">
+
+            <div class="feature-icon">
+                ⛓
+            </div>
+
+            <h3>
+                Blockchain Proof
+            </h3>
+
+            <p>
+                Generate a tamper-evident cryptographic proof
+                that can be anchored to a compatible blockchain.
+            </p>
+
+            <span class="learn">
+                VIEW BLOCKCHAIN →
+            </span>
+
+        </a>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     TRUST
+===================================================== -->
+
+<section class="section">
+
+    <div class="trust-grid">
+
+
+        <a href="/privacy" class="trust-card">
+
+            <h3>
+                🔒 Privacy First
+            </h3>
+
+            <p>
+                Raw source code should not be placed on a
+                blockchain. SecureCode AI performs source
+                analysis separately and uses cryptographic
+                fingerprints for integrity.
+            </p>
+
+            <span class="trust-link">
+                Explore Privacy Architecture →
+            </span>
+
+        </a>
+
+
+        <a href="/blockchain" class="trust-card">
+
+            <h3>
+                ⛓ Tamper-Evident Assessment
+            </h3>
+
+            <p>
+                A security report can be represented by a
+                cryptographic hash, allowing future verification
+                that the report content has not been altered.
+            </p>
+
+            <span class="trust-link">
+                Explore Proof Architecture →
+            </span>
+
+        </a>
+
+
+    </div>
+
+
+    <div class="disclaimer">
+
+        ⚠️ <strong>Security Notice:</strong>
+
+        SecureCode AI provides automated, pattern-based security
+        assistance. Results may contain false positives or false
+        negatives and do not guarantee complete security.
+
+        Always perform appropriate manual security review and
+        professional security testing before deploying a website.
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
+<footer>
+
+
+    <div>
+
+        <div class="footer-brand">
+
+            <span>SECURE</span>CODE AI
+
         </div>
-
-
-        <div class="advantage-grid">
-
-
-            <div class="advantage">
-
-                <h3>
-                    🛡 Prevent Security Risks
-                </h3>
-
-                <p>
-                    Detect common security-risk patterns
-                    before a website is deployed to production.
-                </p>
-
-            </div>
-
-
-            <div class="advantage">
-
-                <h3>
-                    ⚡ Save Time & Effort
-                </h3>
-
-                <p>
-                    Automated source-code analysis helps reduce
-                    the time required for manual security review.
-                </p>
-
-            </div>
-
-
-            <div class="advantage">
-
-                <h3>
-                    👨‍💻 Freelancer Friendly
-                </h3>
-
-                <p>
-                    Freelancers can use CodeSecure as an additional
-                    verification step before delivering websites
-                    to clients.
-                </p>
-
-            </div>
-
-
-            <div class="advantage">
-
-                <h3>
-                    📊 Easy Security Reports
-                </h3>
-
-                <p>
-                    Receive a simple security score, severity levels,
-                    explanations and recommended actions.
-                </p>
-
-            </div>
-
-
-            <div class="advantage">
-
-                <h3>
-                    🔒 Privacy-Focused
-                </h3>
-
-                <p>
-                    The prototype analyzes submitted code as text
-                    and does not execute the uploaded source code.
-                </p>
-
-            </div>
-
-
-            <div class="advantage">
-
-                <h3>
-                    💼 Business Protection
-                </h3>
-
-                <p>
-                    Helps non-technical business owners understand
-                    potential security concerns before going live.
-                </p>
-
-            </div>
-
-
-        </div>
-
-    </section>
-
-
-    <!-- =========================
-         CTA
-    ========================= -->
-
-    <section class="cta">
-
-        <h2>
-            <span>VERIFY THE CODE.</span>
-            <br>
-            PROTECT THE BUSINESS.
-        </h2>
 
         <p>
-            AI CodeSecure helps developers and businesses
-            identify common security risks and make informed
-            decisions before launching a website.
+            AI-assisted website security verification
+            for the modern digital business.
         </p>
 
-    </section>
+    </div>
 
 
-    <!-- =========================
-         FOOTER
-    ========================= -->
+    <div>
 
-    <footer>
+        <h4>
+            PLATFORM
+        </h4>
 
-        © 2026
-        <strong>AI CodeSecure</strong>
-        — Website Security Verification Platform
+        <a href="/audit">
+            Security Audit
+        </a>
 
-        <br><br>
+        <a href="/ai-engine">
+            AI Engine
+        </a>
 
-        Team Tech Forse 5 |
-        Team Leader: NISHANT RAMAN AGARWAL |
-        5 Members
+        <a href="/ml">
+            ML Model
+        </a>
 
-    </footer>
+        <a href="/clustering">
+            Vulnerability Intelligence
+        </a>
 
-
-    <!-- =========================
-         JAVASCRIPT
-    ========================= -->
-
-    <script>
-
-
-        /* =========================
-           FILE NAME DISPLAY
-        ========================= */
-
-        const fileInput =
-            document.getElementById("project");
+    </div>
 
 
-        const fileName =
-            document.getElementById("fileName");
+    <div>
+
+        <h4>
+            TRUST
+        </h4>
+
+        <a href="/privacy">
+            Privacy & Code Seal
+        </a>
+
+        <a href="/passport">
+            Security Passport
+        </a>
+
+        <a href="/blockchain">
+            Blockchain Proof
+        </a>
+
+        <a href="/about">
+            Architecture
+        </a>
+
+    </div>
 
 
-        fileInput.addEventListener(
-            "change",
-            function () {
-
-                if (this.files.length > 0) {
-
-                    fileName.textContent =
-                        "Selected: " +
-                        this.files[0].name;
-
-                } else {
-
-                    fileName.textContent =
-                        "No file selected";
-
-                }
-
-            }
-        );
+</footer>
 
 
-        /* =========================
-           SWITCH BETWEEN SCANNERS
-        ========================= */
 
-        function showScanner(
-            scannerId,
-            button
-        ) {
+<div class="copyright">
 
-            const sections =
-                document.querySelectorAll(
-                    ".scanner-section"
-                );
+    SECURECODE_AI://SYSTEM • TEAM CONFLUX • HACKINDIA AI & WEB3 BUILDERS HACKATHON 2026
 
-
-            sections.forEach(
-                function(section) {
-
-                    section.classList.remove(
-                        "active"
-                    );
-
-                }
-            );
-
-
-            const buttons =
-                document.querySelectorAll(
-                    ".tab-btn"
-                );
-
-
-            buttons.forEach(
-                function(btn) {
-
-                    btn.classList.remove(
-                        "active"
-                    );
-
-                }
-            );
-
-
-            document
-                .getElementById(scannerId)
-                .classList.add("active");
-
-
-            button.classList.add("active");
-
-        }
-
-
-    </script>
+</div>
 
 
 </body>
-
 </html>

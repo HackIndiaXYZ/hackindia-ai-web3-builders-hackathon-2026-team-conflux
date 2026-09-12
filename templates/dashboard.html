@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard | SecureCode AI</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+
+            margin: 0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #f7f1e8;
+
+            color: #38251d;
+        }
+
+        .navbar {
+
+            background: #fffaf4;
+
+            border-bottom:
+                1px solid #e4d6c7;
+
+            padding: 18px 6%;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+        }
+
+        .logo {
+
+            font-size: 23px;
+
+            font-weight: 800;
+
+            color: #754936;
+        }
+
+        .nav-right {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 18px;
+        }
+
+        .nav-right a {
+
+            text-decoration: none;
+
+            color: #754936;
+
+            font-weight: 700;
+        }
+
+        .logout {
+
+            padding: 9px 16px;
+
+            border-radius: 8px;
+
+            background: #754936;
+
+            color: white !important;
+        }
+
+        .container {
+
+            width: 90%;
+
+            max-width: 1200px;
+
+            margin: 40px auto;
+        }
+
+        .welcome {
+
+            margin-bottom: 30px;
+        }
+
+        .welcome h1 {
+
+            margin: 0 0 8px;
+
+            font-size: 32px;
+        }
+
+        .welcome p {
+
+            color: #806d61;
+
+            margin: 0;
+        }
+
+        .stats {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 20px;
+
+            margin-bottom: 35px;
+        }
+
+        .stat {
+
+            background: #fffaf4;
+
+            padding: 25px;
+
+            border-radius: 16px;
+
+            border:
+                1px solid #e5d6c6;
+
+            box-shadow:
+                0 10px 25px
+                rgba(91,59,43,.07);
+        }
+
+        .stat-label {
+
+            color: #806d61;
+
+            font-size: 14px;
+
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+
+            font-size: 30px;
+
+            font-weight: 800;
+
+            color: #754936;
+        }
+
+        .section {
+
+            background: #fffaf4;
+
+            border:
+                1px solid #e5d6c6;
+
+            border-radius: 16px;
+
+            padding: 25px;
+
+            box-shadow:
+                0 10px 25px
+                rgba(91,59,43,.07);
+        }
+
+        .section-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 {
+
+            margin: 0;
+        }
+
+        .scan-btn {
+
+            background: #754936;
+
+            color: white;
+
+            padding: 11px 18px;
+
+            border-radius: 9px;
+
+            text-decoration: none;
+
+            font-weight: 700;
+        }
+
+        table {
+
+            width: 100%;
+
+            border-collapse: collapse;
+        }
+
+        th, td {
+
+            padding: 15px 10px;
+
+            border-bottom:
+                1px solid #eadfd4;
+
+            text-align: left;
+        }
+
+        th {
+
+            color: #806d61;
+
+            font-size: 13px;
+
+            text-transform: uppercase;
+        }
+
+        .risk {
+
+            font-weight: 800;
+        }
+
+        .risk.LOW {
+            color: #55734e;
+        }
+
+        .risk.MEDIUM {
+            color: #9a6b2f;
+        }
+
+        .risk.HIGH,
+        .risk.CRITICAL {
+            color: #9a493b;
+        }
+
+        .view {
+
+            color: #754936;
+
+            font-weight: 700;
+
+            text-decoration: none;
+        }
+
+        .empty {
+
+            text-align: center;
+
+            padding: 40px;
+
+            color: #806d61;
+        }
+
+        @media(max-width: 800px) {
+
+            .stats {
+
+                grid-template-columns: 1fr;
+
+            }
+
+            table {
+
+                font-size: 13px;
+            }
+
+            .section {
+
+                overflow-x: auto;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<nav class="navbar">
+
+    <div class="logo">
+        SecureCode AI
+    </div>
+
+    <div class="nav-right">
+
+        <a href="/">
+            Home
+        </a>
+
+        <a href="/dashboard">
+            Dashboard
+        </a>
+
+        <a href="/logout"
+           class="logout">
+            Logout
+        </a>
+
+    </div>
+
+</nav>
+
+
+<div class="container">
+
+    <div class="welcome">
+
+        <h1>
+            Welcome, {{ user["name"] }} 👋
+        </h1>
+
+        <p>
+            Manage your security audits and review previous results.
+        </p>
+
+    </div>
+
+
+    <div class="stats">
+
+        <div class="stat">
+
+            <div class="stat-label">
+                TOTAL SECURITY AUDITS
+            </div>
+
+            <div class="stat-value">
+                {{ stats["total_audits"] }}
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-label">
+                AVERAGE SECURITY SCORE
+            </div>
+
+            <div class="stat-value">
+                {{ stats["average_score"] }}/100
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-label">
+                HIGH / CRITICAL AUDITS
+            </div>
+
+            <div class="stat-value">
+                {{ stats["high_risk_audits"] }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="section">
+
+        <div class="section-header">
+
+            <h2>
+                Audit History
+            </h2>
+
+            <a href="/" class="scan-btn">
+                + New Security Scan
+            </a>
+
+        </div>
+
+
+        {% if audits %}
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Project</th>
+
+                    <th>Score</th>
+
+                    <th>Risk</th>
+
+                    <th>Files</th>
+
+                    <th>Findings</th>
+
+                    <th>Date</th>
+
+                    <th></th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for audit in audits %}
+
+                <tr>
+
+                    <td>
+                        <strong>
+                            {{ audit["project_name"] }}
+                        </strong>
+                    </td>
+
+                    <td>
+                        <strong>
+                            {{ audit["score"] }}/100
+                        </strong>
+                    </td>
+
+                    <td>
+
+                        <span class="risk {{ audit['risk_level'] }}">
+
+                            {{ audit["risk_level"] }}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+                        {{ audit["files_scanned"] }}
+                    </td>
+
+                    <td>
+                        {{ audit["findings_count"] }}
+                    </td>
+
+                    <td>
+                        {{ audit["created_at"] }}
+                    </td>
+
+                    <td>
+
+                        <a
+                            class="view"
+                            href="/history/{{ audit['id'] }}"
+                        >
+                            View Report →
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        {% else %}
+
+            <div class="empty">
+
+                <h3>
+                    No security audits yet
+                </h3>
+
+                <p>
+                    Upload a project or paste code to create your first audit.
+                </p>
+
+                <br>
+
+                <a href="/" class="scan-btn">
+                    Start First Scan
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

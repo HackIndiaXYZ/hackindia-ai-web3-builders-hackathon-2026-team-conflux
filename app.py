@@ -1,24 +1,167 @@
-from flask import Flask, render_template, request, render_template_string
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    session,
+    flash
+)
+
 import os
+import sqlite3
+import json
+from functools import wraps
+from datetime import datetime
 
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
+
 from scanner import scan_project, scan_pasted_code
+from security_seal import create_security_passport
+from blockchain_proof import create_blockchain_proof
 
 
 app = Flask(__name__)
 
+# =========================================================
+# APP CONFIG
+# =========================================================
+
+app.secret_key = os.environ.get(
+    "SECRET_KEY",
+    "securecode-ai-demo-secret-key"
+)
+
 UPLOAD_FOLDER = "uploads"
 ALLOWED_EXTENSIONS = {"zip"}
+
+DATABASE = "securecode.db"
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
+# =========================================================
+# DATABASE
+# =========================================================
+
+def get_db():
+
+    connection = sqlite3.connect(DATABASE)
+
+    connection.row_factory = sqlite3.Row
+
+    return connection
+
+
+def init_db():
+
+    connection = get_db()
+
+    cursor = connection.cursor()
+
+    # Users table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            name TEXT NOT NULL,
+
+            email TEXT UNIQUE NOT NULL,
+
+            password_hash TEXT NOT NULL,
+
+            created_at TEXT NOT NULL
+
+        )
+    """)
+
+    # Audit history table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS audits (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            user_id INTEGER NOT NULL,
+
+            project_name TEXT NOT NULL,
+
+            score INTEGER NOT NULL,
+
+            risk_level TEXT NOT NULL,
+
+            files_scanned INTEGER DEFAULT 0,
+
+            findings_count INTEGER DEFAULT 0,
+
+            high_count INTEGER DEFAULT 0,
+
+            medium_count INTEGER DEFAULT 0,
+
+            low_count INTEGER DEFAULT 0,
+
+            report_hash TEXT,
+
+            passport_id TEXT,
+
+            blockchain_status TEXT,
+
+            report_json TEXT NOT NULL,
+
+            created_at TEXT NOT NULL,
+
+            FOREIGN KEY(user_id)
+                REFERENCES users(id)
+
+        )
+    """)
+
+    connection.commit()
+
+    connection.close()
+
+
+init_db()
+
+
+# =========================================================
+# LOGIN REQUIRED DECORATOR
+# =========================================================
+
+def login_required(function):
+
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+
+        if "user_id" not in session:
+
+            flash(
+                "Please login to access your dashboard.",
+                "warning"
+            )
+
+            return redirect(
+                url_for("login")
+            )
+
+        return function(*args, **kwargs)
+
+    return wrapper
+
+
+# =========================================================
+# BASIC FUNCTIONS
+# =========================================================
+
 def allowed_file(filename):
+
     return (
         "." in filename
-        and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+        and filename.rsplit(".", 1)[1].lower()
+        in ALLOWED_EXTENSIONS
     )
 
 
@@ -28,7 +171,10 @@ def calculate_score(findings):
 
     for finding in findings:
 
-        severity = finding.get("severity", "Low")
+        severity = finding.get(
+            "ml_severity",
+            finding.get("severity", "Low")
+        )
 
         if severity == "High":
             score -= 25
@@ -42,772 +188,987 @@ def calculate_score(findings):
     return max(score, 0)
 
 
-def show_results(
+def get_risk_level(score):
+
+    if score >= 80:
+        return "LOW"
+
+    if score >= 50:
+        return "MEDIUM"
+
+    if score >= 25:
+        return "HIGH"
+
+    return "CRITICAL"
+
+
+def build_clusters(findings):
+
+    clusters = {}
+
+    for finding in findings:
+
+        cluster = finding.get(
+            "cluster",
+            "Other"
+        )
+
+        clusters[cluster] = (
+            clusters.get(cluster, 0) + 1
+        )
+
+    return clusters
+
+
+def build_ml_summary(findings):
+
+    if not findings:
+
+        return {
+            "average_confidence": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0
+        }
+
+    confidence = [
+
+        finding.get(
+            "ml_confidence",
+            0
+        )
+
+        for finding in findings
+
+    ]
+
+    return {
+
+        "average_confidence":
+            round(
+                sum(confidence) /
+                len(confidence)
+            ),
+
+        "high":
+            sum(
+                1
+                for f in findings
+                if f.get("ml_severity") == "High"
+            ),
+
+        "medium":
+            sum(
+                1
+                for f in findings
+                if f.get("ml_severity") == "Medium"
+            ),
+
+        "low":
+            sum(
+                1
+                for f in findings
+                if f.get("ml_severity") == "Low"
+            )
+
+    }
+
+
+# =========================================================
+# BUILD SCAN RESULT
+# =========================================================
+
+def prepare_results(
     filename,
     files_scanned,
-    findings,
-    score
+    findings
 ):
 
-    return render_template_string(
-        RESULTS_PAGE,
-        filename=filename,
-        files_scanned=files_scanned,
-        findings=findings,
-        score=score
+    score = calculate_score(findings)
+
+    risk = get_risk_level(score)
+
+    passport = create_security_passport(
+
+        filename,
+        score,
+        findings,
+        files_scanned
+
     )
 
+    blockchain = create_blockchain_proof(
+        passport
+    )
+
+    return {
+
+        "filename": filename,
+
+        "files_scanned":
+            files_scanned,
+
+        "findings":
+            findings,
+
+        "score":
+            score,
+
+        "risk_level":
+            risk,
+
+        "clusters":
+            build_clusters(findings),
+
+        "ml":
+            build_ml_summary(findings),
+
+        "passport":
+            passport,
+
+        "blockchain":
+            blockchain
+
+    }
+
+
+# =========================================================
+# SAVE AUDIT TO USER HISTORY
+# =========================================================
+
+def save_audit(user_id, data):
+
+    findings = data.get(
+        "findings",
+        []
+    )
+
+    high_count = sum(
+        1
+        for finding in findings
+        if finding.get(
+            "ml_severity",
+            finding.get("severity")
+        ) == "High"
+    )
+
+    medium_count = sum(
+        1
+        for finding in findings
+        if finding.get(
+            "ml_severity",
+            finding.get("severity")
+        ) == "Medium"
+    )
+
+    low_count = sum(
+        1
+        for finding in findings
+        if finding.get(
+            "ml_severity",
+            finding.get("severity")
+        ) == "Low"
+    )
+
+    passport = data.get(
+        "passport",
+        {}
+    )
+
+    blockchain = data.get(
+        "blockchain",
+        {}
+    )
+
+    report_hash = passport.get(
+        "report_hash",
+        ""
+    )
+
+    passport_id = passport.get(
+        "passport_id",
+        ""
+    )
+
+    blockchain_status = blockchain.get(
+        "status",
+        "READY_FOR_BLOCKCHAIN"
+    )
+
+    connection = get_db()
+
+    connection.execute(
+        """
+        INSERT INTO audits (
+
+            user_id,
+            project_name,
+            score,
+            risk_level,
+            files_scanned,
+            findings_count,
+            high_count,
+            medium_count,
+            low_count,
+            report_hash,
+            passport_id,
+            blockchain_status,
+            report_json,
+            created_at
+
+        )
+
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+
+        (
+
+            user_id,
+
+            data.get(
+                "filename",
+                "Unknown Project"
+            ),
+
+            data.get(
+                "score",
+                0
+            ),
+
+            data.get(
+                "risk_level",
+                "UNKNOWN"
+            ),
+
+            data.get(
+                "files_scanned",
+                0
+            ),
+
+            len(findings),
+
+            high_count,
+
+            medium_count,
+
+            low_count,
+
+            report_hash,
+
+            passport_id,
+
+            blockchain_status,
+
+            json.dumps(
+                data
+            ),
+
+            datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+
+        )
+
+    )
+
+    connection.commit()
+
+    connection.close()
+
+
+# =========================================================
+# HOME
+# =========================================================
 
 @app.route("/")
 def home():
 
-    return render_template("index.html")
+    return render_template(
+        "index.html"
+    )
 
 
-# ==================================================
-# ZIP PROJECT SCANNER
-# ==================================================
+# =========================================================
+# REGISTER
+# =========================================================
 
-@app.route("/upload", methods=["POST"])
+@app.route(
+    "/register",
+    methods=["GET", "POST"]
+)
+def register():
+
+    if "user_id" in session:
+
+        return redirect(
+            url_for("dashboard")
+        )
+
+    if request.method == "POST":
+
+        name = request.form.get(
+            "name",
+            ""
+        ).strip()
+
+        email = request.form.get(
+            "email",
+            ""
+        ).strip().lower()
+
+        password = request.form.get(
+            "password",
+            ""
+        )
+
+        if not name or not email or not password:
+
+            flash(
+                "Please fill all fields.",
+                "error"
+            )
+
+            return render_template(
+                "register.html"
+            )
+
+        if len(password) < 6:
+
+            flash(
+                "Password must contain at least 6 characters.",
+                "error"
+            )
+
+            return render_template(
+                "register.html"
+            )
+
+        connection = get_db()
+
+        existing_user = connection.execute(
+            """
+            SELECT id
+            FROM users
+            WHERE email = ?
+            """,
+            (email,)
+        ).fetchone()
+
+        if existing_user:
+
+            connection.close()
+
+            flash(
+                "An account with this email already exists.",
+                "error"
+            )
+
+            return render_template(
+                "register.html"
+            )
+
+        password_hash = generate_password_hash(
+            password
+        )
+
+        connection.execute(
+            """
+            INSERT INTO users (
+                name,
+                email,
+                password_hash,
+                created_at
+            )
+
+            VALUES (?, ?, ?, ?)
+            """,
+
+            (
+                name,
+                email,
+                password_hash,
+                datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
+            )
+        )
+
+        connection.commit()
+
+        connection.close()
+
+        flash(
+            "Account created successfully. Please login.",
+            "success"
+        )
+
+        return redirect(
+            url_for("login")
+        )
+
+    return render_template(
+        "register.html"
+    )
+
+
+# =========================================================
+# LOGIN
+# =========================================================
+
+@app.route(
+    "/login",
+    methods=["GET", "POST"]
+)
+def login():
+
+    if "user_id" in session:
+
+        return redirect(
+            url_for("dashboard")
+        )
+
+    if request.method == "POST":
+
+        email = request.form.get(
+            "email",
+            ""
+        ).strip().lower()
+
+        password = request.form.get(
+            "password",
+            ""
+        )
+
+        connection = get_db()
+
+        user = connection.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE email = ?
+            """,
+            (email,)
+        ).fetchone()
+
+        connection.close()
+
+        if (
+            user
+            and check_password_hash(
+                user["password_hash"],
+                password
+            )
+        ):
+
+            session.clear()
+
+            session["user_id"] = user["id"]
+
+            session["user_name"] = user["name"]
+
+            session["user_email"] = user["email"]
+
+            return redirect(
+                url_for("dashboard")
+            )
+
+        flash(
+            "Invalid email or password.",
+            "error"
+        )
+
+    return render_template(
+        "login.html"
+    )
+
+
+# =========================================================
+# LOGOUT
+# =========================================================
+
+@app.route("/logout")
+def logout():
+
+    session.clear()
+
+    flash(
+        "You have been logged out.",
+        "success"
+    )
+
+    return redirect(
+        url_for("home")
+    )
+
+
+# =========================================================
+# DASHBOARD
+# =========================================================
+
+@app.route("/dashboard")
+@login_required
+def dashboard():
+
+    user_id = session["user_id"]
+
+    connection = get_db()
+
+    user = connection.execute(
+        """
+        SELECT *
+        FROM users
+        WHERE id = ?
+        """,
+        (user_id,)
+    ).fetchone()
+
+    audits = connection.execute(
+        """
+        SELECT *
+        FROM audits
+
+        WHERE user_id = ?
+
+        ORDER BY id DESC
+        """,
+        (user_id,)
+    ).fetchall()
+
+    stats = connection.execute(
+        """
+        SELECT
+
+            COUNT(*) AS total_audits,
+
+            COALESCE(
+                ROUND(AVG(score)),
+                0
+            ) AS average_score,
+
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN risk_level IN ('HIGH', 'CRITICAL')
+                        THEN 1
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS high_risk_audits
+
+        FROM audits
+
+        WHERE user_id = ?
+        """,
+        (user_id,)
+    ).fetchone()
+
+    connection.close()
+
+    return render_template(
+        "dashboard.html",
+
+        user=user,
+
+        audits=audits,
+
+        stats=stats
+    )
+
+
+# =========================================================
+# VIEW PREVIOUS AUDIT
+# =========================================================
+
+@app.route(
+    "/history/<int:audit_id>"
+)
+@login_required
+def view_history(audit_id):
+
+    connection = get_db()
+
+    audit_record = connection.execute(
+        """
+        SELECT *
+        FROM audits
+
+        WHERE id = ?
+        AND user_id = ?
+        """,
+
+        (
+            audit_id,
+            session["user_id"]
+        )
+    ).fetchone()
+
+    connection.close()
+
+    if not audit_record:
+
+        return render_template(
+            "page.html",
+            page="error",
+            error="Audit report not found."
+        )
+
+    try:
+
+        data = json.loads(
+            audit_record["report_json"]
+        )
+
+    except Exception:
+
+        return render_template(
+            "page.html",
+            page="error",
+            error="Unable to load saved audit report."
+        )
+
+    return render_template(
+
+        "page.html",
+
+        page="results",
+
+        data=data,
+
+        history_view=True
+
+    )
+
+
+# =========================================================
+# INFORMATION PAGES
+# =========================================================
+
+@app.route("/audit")
+def audit():
+
+    return render_template(
+        "page.html",
+        page="audit"
+    )
+
+
+@app.route("/ai-engine")
+def ai_engine():
+
+    return render_template(
+        "page.html",
+        page="ai"
+    )
+
+
+@app.route("/ml")
+def ml():
+
+    return render_template(
+        "page.html",
+        page="ml"
+    )
+
+
+@app.route("/clustering")
+def clustering():
+
+    return render_template(
+        "page.html",
+        page="clustering"
+    )
+
+
+@app.route("/privacy")
+def privacy():
+
+    return render_template(
+        "page.html",
+        page="privacy"
+    )
+
+
+@app.route("/blockchain")
+def blockchain():
+
+    return render_template(
+        "page.html",
+        page="blockchain"
+    )
+
+
+@app.route("/passport")
+def passport():
+
+    return render_template(
+        "page.html",
+        page="passport"
+    )
+
+
+@app.route("/reports")
+def reports():
+
+    return render_template(
+        "page.html",
+        page="reports"
+    )
+
+
+@app.route("/about")
+def about():
+
+    return render_template(
+        "page.html",
+        page="about"
+    )
+
+
+# =========================================================
+# ZIP SCAN
+# =========================================================
+
+@app.route(
+    "/upload",
+    methods=["POST"]
+)
+@login_required
 def upload_file():
 
-    if "project" not in request.files:
-        return "No file selected."
+    try:
 
-    file = request.files["project"]
+        if "project" not in request.files:
 
-    if file.filename == "":
-        return "No file selected."
+            return render_template(
+                "page.html",
+                page="error",
+                error="No project file was selected."
+            )
 
-    if not allowed_file(file.filename):
-        return "Only ZIP files are allowed."
+        file = request.files["project"]
 
-    filename = secure_filename(file.filename)
+        if not file.filename:
 
-    filepath = os.path.join(
-        app.config["UPLOAD_FOLDER"],
-        filename
-    )
+            return render_template(
+                "page.html",
+                page="error",
+                error="Please select a ZIP file."
+            )
 
-    file.save(filepath)
+        if not allowed_file(
+            file.filename
+        ):
 
-    # Scan uploaded project
-    result = scan_project(filepath)
+            return render_template(
+                "page.html",
+                page="error",
+                error="Only ZIP files are supported."
+            )
 
-    if result["status"] != "success":
+        filename = secure_filename(
+            file.filename
+        )
+
+        filepath = os.path.join(
+
+            app.config[
+                "UPLOAD_FOLDER"
+            ],
+
+            filename
+
+        )
+
+        file.save(filepath)
+
+        result = scan_project(
+            filepath
+        )
 
         try:
+
             os.remove(filepath)
+
         except OSError:
+
             pass
 
-        return f"""
-        <h2>Scan Error</h2>
-        <p>{result.get("error", "Unknown error")}</p>
-        <a href="/">Go Back</a>
-        """
+        if result.get("status") != "success":
 
-    findings = result["findings"]
+            return render_template(
 
-    files_scanned = result["files_scanned"]
+                "page.html",
 
-    score = calculate_score(findings)
+                page="error",
 
-    # Delete uploaded ZIP
-    try:
-        os.remove(filepath)
-    except OSError:
-        pass
+                error=result.get(
+                    "error",
+                    "Security scanner failed."
+                )
 
-    return show_results(
-        filename,
-        files_scanned,
-        findings,
-        score
-    )
+            )
+
+        data = prepare_results(
+
+            filename,
+
+            result.get(
+                "files_scanned",
+                0
+            ),
+
+            result.get(
+                "findings",
+                []
+            )
+
+        )
+
+        # SAVE AUDIT HISTORY
+        save_audit(
+            session["user_id"],
+            data
+        )
+
+        return render_template(
+
+            "page.html",
+
+            page="results",
+
+            data=data
+
+        )
+
+    except Exception as e:
+
+        return render_template(
+
+            "page.html",
+
+            page="error",
+
+            error=str(e)
+
+        )
 
 
-# ==================================================
-# PASTED CODE SCANNER
-# ==================================================
+# =========================================================
+# PASTED CODE SCAN
+# =========================================================
 
-@app.route("/scan-code", methods=["POST"])
+@app.route(
+    "/scan-code",
+    methods=["POST"]
+)
+@login_required
 def scan_code():
 
-    code = request.form.get("code", "")
+    try:
 
-    language = request.form.get(
-        "language",
-        "Unknown"
-    )
+        code = request.form.get(
+            "code",
+            ""
+        )
 
-    if not code.strip():
+        language = request.form.get(
+            "language",
+            "Unknown"
+        )
 
-        return """
-        <h2>No Code Provided</h2>
+        if not code.strip():
 
-        <p>
-            Please paste some code before starting the scan.
-        </p>
+            return render_template(
 
-        <a href="/">
-            Go Back
-        </a>
-        """
+                "page.html",
 
-    result = scan_pasted_code(
-        code,
-        language
-    )
+                page="error",
 
-    if result["status"] != "success":
+                error="Please paste source code before scanning."
 
-        return f"""
-        <h2>Scan Error</h2>
+            )
 
-        <p>
-            {result.get("error", "Unknown error")}
-        </p>
+        result = scan_pasted_code(
 
-        <a href="/">
-            Go Back
-        </a>
-        """
+            code,
 
-    findings = result["findings"]
+            language
 
-    files_scanned = result["files_scanned"]
+        )
 
-    score = calculate_score(findings)
+        if result.get("status") != "success":
 
-    filename = f"Pasted {language} Code"
+            return render_template(
 
-    return show_results(
-        filename,
-        files_scanned,
-        findings,
-        score
-    )
+                "page.html",
 
+                page="error",
 
-# ==================================================
-# RESULTS PAGE
-# ==================================================
+                error=result.get(
+                    "error",
+                    "Code scanner failed."
+                )
 
-RESULTS_PAGE = """
+            )
 
-<!DOCTYPE html>
+        filename = (
+            "Pasted "
+            + language
+            + " Code"
+        )
 
-<html lang="en">
+        data = prepare_results(
 
-<head>
+            filename,
 
-    <meta charset="UTF-8">
+            result.get(
+                "files_scanned",
+                1
+            ),
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+            result.get(
+                "findings",
+                []
+            )
 
-    <title>
-        CodeSecure - Security Report
-    </title>
+        )
 
+        # SAVE AUDIT HISTORY
+        save_audit(
+            session["user_id"],
+            data
+        )
 
-    <style>
+        return render_template(
 
-        * {
-            box-sizing: border-box;
-        }
+            "page.html",
 
+            page="results",
 
-        body {
+            data=data
 
-            margin: 0;
+        )
 
-            font-family: Arial, sans-serif;
+    except Exception as e:
 
-            background: #07111f;
+        return render_template(
 
-            color: white;
+            "page.html",
 
-        }
+            page="error",
 
+            error=str(e)
 
-        .container {
+        )
 
-            width: 90%;
 
-            max-width: 1100px;
-
-            margin: auto;
-
-            padding: 40px 0;
-
-        }
-
-
-        .top {
-
-            display: flex;
-
-            justify-content: space-between;
-
-            align-items: center;
-
-            margin-bottom: 40px;
-
-        }
-
-
-        .logo {
-
-            font-size: 24px;
-
-            font-weight: bold;
-
-        }
-
-
-        .back {
-
-            color: #9ca3af;
-
-            text-decoration: none;
-
-        }
-
-
-        .hero {
-
-            text-align: center;
-
-            margin-bottom: 35px;
-
-        }
-
-
-        .hero h1 {
-
-            font-size: 42px;
-
-            margin-bottom: 10px;
-
-        }
-
-
-        .hero p {
-
-            color: #9ca3af;
-
-        }
-
-
-        .score-card {
-
-            background: #101d30;
-
-            border: 1px solid #26364d;
-
-            border-radius: 18px;
-
-            padding: 35px;
-
-            text-align: center;
-
-            margin-bottom: 25px;
-
-        }
-
-
-        .score {
-
-            font-size: 72px;
-
-            font-weight: bold;
-
-            margin: 10px;
-
-        }
-
-
-        .score-label {
-
-            color: #9ca3af;
-
-            font-size: 16px;
-
-        }
-
-
-        .stats {
-
-            display: grid;
-
-            grid-template-columns: repeat(2, 1fr);
-
-            gap: 20px;
-
-            margin-bottom: 25px;
-
-        }
-
-
-        .stat {
-
-            background: #101d30;
-
-            border: 1px solid #26364d;
-
-            border-radius: 15px;
-
-            padding: 25px;
-
-        }
-
-
-        .stat h3 {
-
-            margin: 0 0 8px;
-
-            font-size: 28px;
-
-        }
-
-
-        .stat p {
-
-            margin: 0;
-
-            color: #9ca3af;
-
-        }
-
-
-        .report {
-
-            background: #101d30;
-
-            border: 1px solid #26364d;
-
-            border-radius: 18px;
-
-            padding: 30px;
-
-        }
-
-
-        .report h2 {
-
-            margin-top: 0;
-
-        }
-
-
-        .safe {
-
-            padding: 25px;
-
-            border-radius: 12px;
-
-            background: #10251d;
-
-            border: 1px solid #1d6b4a;
-
-        }
-
-
-        .finding {
-
-            background: #0b1627;
-
-            border: 1px solid #26364d;
-
-            border-radius: 12px;
-
-            padding: 25px;
-
-            margin-top: 18px;
-
-        }
-
-
-        .finding-title {
-
-            font-size: 20px;
-
-            font-weight: bold;
-
-        }
-
-
-        .severity {
-
-            display: inline-block;
-
-            margin-top: 10px;
-
-            padding: 6px 12px;
-
-            border-radius: 6px;
-
-            background: #402020;
-
-            color: #ffb4b4;
-
-            font-size: 13px;
-
-            font-weight: bold;
-
-        }
-
-
-        .file {
-
-            color: #8ab4f8;
-
-            margin-top: 14px;
-
-            word-break: break-all;
-
-        }
-
-
-        .section-title {
-
-            margin-top: 22px;
-
-            margin-bottom: 7px;
-
-            font-size: 15px;
-
-            font-weight: bold;
-
-            color: #ffffff;
-
-        }
-
-
-        .message {
-
-            color: #cbd5e1;
-
-            line-height: 1.7;
-
-        }
-
-
-        .details {
-
-            color: #cbd5e1;
-
-            line-height: 1.7;
-
-        }
-
-
-        .recommendation {
-
-            margin-top: 10px;
-
-            padding: 15px;
-
-            border-radius: 10px;
-
-            background: #13243a;
-
-            color: #dbeafe;
-
-            line-height: 1.6;
-
-        }
-
-
-        @media(max-width: 700px) {
-
-            .stats {
-
-                grid-template-columns: 1fr;
-
-            }
-
-
-            .hero h1 {
-
-                font-size: 32px;
-
-            }
-
-        }
-
-    </style>
-
-</head>
-
-
-<body>
-
-
-<div class="container">
-
-
-    <div class="top">
-
-        <div class="logo">
-
-            🛡️ CodeSecure
-
-        </div>
-
-
-        <a class="back" href="/">
-
-            ← Scan another project
-
-        </a>
-
-    </div>
-
-
-    <div class="hero">
-
-        <h1>
-
-            Security Analysis Complete
-
-        </h1>
-
-
-        <p>
-
-            Analysis report for
-
-            <strong>
-
-                {{ filename }}
-
-            </strong>
-
-        </p>
-
-    </div>
-
-
-    <div class="score-card">
-
-        <div class="score">
-
-            {{ score }}/100
-
-        </div>
-
-
-        <div class="score-label">
-
-            Security Score
-
-        </div>
-
-    </div>
-
-
-    <div class="stats">
-
-
-        <div class="stat">
-
-            <h3>
-
-                {{ files_scanned }}
-
-            </h3>
-
-
-            <p>
-
-                Files Scanned
-
-            </p>
-
-        </div>
-
-
-        <div class="stat">
-
-            <h3>
-
-                {{ findings|length }}
-
-            </h3>
-
-
-            <p>
-
-                Security Findings
-
-            </p>
-
-        </div>
-
-
-    </div>
-
-
-    <div class="report">
-
-
-        <h2>
-
-            🔍 Security Findings
-
-        </h2>
-
-
-        {% if findings %}
-
-
-            {% for finding in findings %}
-
-
-                <div class="finding">
-
-
-                    <div class="finding-title">
-
-                        {{ finding["type"] }}
-
-                    </div>
-
-
-                    <span class="severity">
-
-                        {{ finding["severity"] }}
-
-                    </span>
-
-
-                    <div class="file">
-
-                        📄 {{ finding["file"] }}
-
-                    </div>
-
-
-                    <div class="section-title">
-
-                        What CodeSecure Detected
-
-                    </div>
-
-
-                    <div class="message">
-
-                        {{ finding["message"] }}
-
-                    </div>
-
-
-                    {% if finding.get("explanation") %}
-
-                        <div class="section-title">
-
-                            Why This Matters
-
-                        </div>
-
-
-                        <div class="details">
-
-                            {{ finding["explanation"] }}
-
-                        </div>
-
-                    {% endif %}
-
-
-                    {% if finding.get("impact") %}
-
-                        <div class="section-title">
-
-                            Business Impact
-
-                        </div>
-
-
-                        <div class="details">
-
-                            {{ finding["impact"] }}
-
-                        </div>
-
-                    {% endif %}
-
-
-                    {% if finding.get("recommendation") %}
-
-                        <div class="section-title">
-
-                            Recommended Action
-
-                        </div>
-
-
-                        <div class="recommendation">
-
-                            🛠️ {{ finding["recommendation"] }}
-
-                        </div>
-
-                    {% endif %}
-
-
-                </div>
-
-
-            {% endfor %}
-
-
-        {% else %}
-
-
-            <div class="safe">
-
-
-                <h3>
-
-                    ✅ No Critical Vulnerabilities Detected
-
-                </h3>
-
-
-                <p>
-
-                    CodeSecure did not detect any of the
-
-                    currently configured security patterns
-
-                    in the analyzed code.
-
-                </p>
-
-
-            </div>
-
-
-        {% endif %}
-
-
-    </div>
-
-
-</div>
-
-
-</body>
-
-</html>
-
-"""
-
+# =========================================================
+# RUN SERVER
+# =========================================================
 
 if __name__ == "__main__":
 
-    app.run(debug=True)
+    app.run(
+        debug=True
+    )

@@ -1,0 +1,2301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        SecureCode AI — Security Audit Report
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #f6efe5;
+            --panel: #fffaf3;
+            --panel2: #f1e5d6;
+            --border: #d8c7b5;
+            --brown: #8b5e3c;
+            --brown-dark: #6f452b;
+            --text: #3f2d20;
+            --muted: #756456;
+
+            --red: #9b4d3f;
+            --yellow: #9a6b32;
+            --green: #557a5c;
+
+            --shadow:
+                0 10px 30px rgba(75, 50, 30, 0.08);
+        }
+
+        body {
+
+            font-family:
+                Inter,
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+                radial-gradient(
+                    circle at 15% 10%,
+                    rgba(139, 94, 60, 0.10),
+                    transparent 30%
+                ),
+
+                radial-gradient(
+                    circle at 85% 20%,
+                    rgba(154, 107, 50, 0.08),
+                    transparent 30%
+                ),
+
+                var(--bg);
+
+            color: var(--text);
+
+            min-height: 100vh;
+
+            line-height: 1.6;
+        }
+
+        /* =====================================================
+           NAVBAR
+           ===================================================== */
+
+        .nav {
+
+            position: sticky;
+            top: 0;
+            z-index: 100;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            padding: 18px 6%;
+
+            background: rgba(246, 239, 229, 0.94);
+
+            border-bottom:
+                1px solid var(--border);
+
+            backdrop-filter: blur(12px);
+        }
+
+        .logo {
+
+            font-size: 24px;
+            font-weight: 800;
+
+            color: var(--text);
+        }
+
+        .logo span {
+
+            color: var(--brown);
+        }
+
+        .navlinks {
+
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .navlinks a {
+
+            color: var(--text);
+
+            text-decoration: none;
+
+            font-size: 14px;
+
+            font-weight: 700;
+        }
+
+        .navlinks a:hover {
+
+            color: var(--brown);
+        }
+
+        /* =====================================================
+           MAIN CONTAINER
+           ===================================================== */
+
+        .container {
+
+            width: min(1180px, 92%);
+
+            margin: 40px auto 70px;
+        }
+
+        /* =====================================================
+           EYEBROW
+           ===================================================== */
+
+        .eyebrow {
+
+            color: var(--brown);
+
+            font-size: 12px;
+
+            font-weight: 800;
+
+            letter-spacing: 1.6px;
+
+            text-transform: uppercase;
+
+            margin-bottom: 8px;
+        }
+
+        /* =====================================================
+           RESULT HEADER
+           ===================================================== */
+
+        .result-header {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 220px;
+
+            gap: 30px;
+
+            align-items: center;
+
+            padding: 32px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(139, 94, 60, 0.08),
+                    rgba(154, 107, 50, 0.04)
+                );
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 24px;
+
+            box-shadow: var(--shadow);
+        }
+
+        .project-name {
+
+            font-size: clamp(30px, 5vw, 48px);
+
+            line-height: 1.1;
+
+            margin-bottom: 12px;
+
+            word-break: break-word;
+        }
+
+        .subtitle {
+
+            color: var(--muted);
+
+            max-width: 760px;
+
+            font-size: 15px;
+        }
+
+        /* =====================================================
+           SCORE
+           ===================================================== */
+
+        .score {
+
+            width: 190px;
+            height: 190px;
+
+            margin-left: auto;
+
+            border-radius: 50%;
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: center;
+
+            align-items: center;
+
+            text-align: center;
+
+            background: var(--panel);
+
+            border:
+                8px solid var(--panel2);
+
+            box-shadow:
+                inset 0 0 0 1px var(--border),
+                var(--shadow);
+        }
+
+        .score strong {
+
+            font-size: 48px;
+
+            line-height: 1;
+
+            color: var(--brown);
+        }
+
+        .score small {
+
+            color: var(--muted);
+
+            font-size: 16px;
+        }
+
+        .score-label {
+
+            margin-top: 7px;
+
+            font-size: 12px;
+
+            color: var(--muted);
+
+            font-weight: 700;
+        }
+
+        /* =====================================================
+           RESULT GRID
+           ===================================================== */
+
+        .result-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                240px 1fr;
+
+            gap: 18px;
+
+            margin-top: 20px;
+        }
+
+        .risk,
+        .verdict {
+
+            background: var(--panel);
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 18px;
+
+            padding: 22px;
+
+            box-shadow: var(--shadow);
+        }
+
+        .risk {
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: center;
+
+            gap: 8px;
+        }
+
+        .risk strong {
+
+            color: var(--muted);
+
+            font-size: 13px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1px;
+        }
+
+        .risk span {
+
+            font-size: 27px;
+
+            font-weight: 900;
+
+            color: var(--brown);
+        }
+
+        .verdict-title {
+
+            font-size: 18px;
+
+            font-weight: 800;
+
+            margin-bottom: 8px;
+
+            color: var(--brown);
+        }
+
+        .verdict p {
+
+            color: var(--muted);
+        }
+
+        /* =====================================================
+           STATISTICS
+           ===================================================== */
+
+        .stats {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 15px;
+
+            margin: 20px 0 45px;
+        }
+
+        .stat {
+
+            background: var(--panel);
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 18px;
+
+            padding: 22px;
+
+            text-align: center;
+
+            box-shadow: var(--shadow);
+        }
+
+        .stat strong {
+
+            display: block;
+
+            font-size: 30px;
+
+            color: var(--brown);
+        }
+
+        .stat span {
+
+            color: var(--muted);
+
+            font-size: 13px;
+
+            font-weight: 700;
+        }
+
+        /* =====================================================
+           SECTION
+           ===================================================== */
+
+        section {
+
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+
+            margin-bottom: 18px;
+        }
+
+        .section-title h2 {
+
+            font-size: 28px;
+
+            color: var(--text);
+        }
+
+        /* =====================================================
+           FINDING
+           ===================================================== */
+
+        .finding {
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #fffaf3,
+                    #fdf5eb
+                );
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 22px;
+
+            padding: 25px;
+
+            margin-bottom: 20px;
+
+            box-shadow: var(--shadow);
+
+            transition: 0.2s ease;
+        }
+
+        .finding:hover {
+
+            transform: translateY(-2px);
+
+            border-color: #b99e85;
+        }
+
+        .finding-header {
+
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 15px;
+
+            margin-bottom: 18px;
+        }
+
+        .finding-icon {
+
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+
+            background: #f3e5d5;
+
+            border:
+                1px solid #d5c1ad;
+
+            font-size: 20px;
+        }
+
+        .finding-title {
+
+            flex: 1;
+        }
+
+        .finding-title h3 {
+
+            font-size: 21px;
+
+            margin-bottom: 4px;
+        }
+
+        .finding-message {
+
+            color: var(--muted);
+
+            font-size: 14px;
+        }
+
+        /* =====================================================
+           SEVERITY
+           ===================================================== */
+
+        .severity {
+
+            padding: 7px 13px;
+
+            border-radius: 999px;
+
+            font-size: 12px;
+
+            font-weight: 900;
+
+            border: 1px solid;
+        }
+
+        .severity.high {
+
+            color: var(--red);
+
+            background: #f7e9e5;
+
+            border-color: #d8aaa0;
+        }
+
+        .severity.medium {
+
+            color: var(--yellow);
+
+            background: #f7efd9;
+
+            border-color: #dbc29a;
+        }
+
+        .severity.low {
+
+            color: var(--green);
+
+            background: #edf4ed;
+
+            border-color: #b9ccb9;
+        }
+
+        /* =====================================================
+           FILE BOX
+           ===================================================== */
+
+        .file-box {
+
+            background: #f3eadf;
+
+            border:
+                1px solid #ded0c1;
+
+            border-radius: 12px;
+
+            padding: 12px 15px;
+
+            margin-bottom: 14px;
+
+            font-size: 13px;
+
+            color: var(--muted);
+
+            word-break: break-word;
+        }
+
+        .file-box span {
+
+            color: var(--brown);
+
+            font-weight: 800;
+
+            margin-right: 5px;
+        }
+
+        /* =====================================================
+           EXPLANATION BOXES
+           ===================================================== */
+
+        .explain-box {
+
+            background: rgba(139, 94, 60, 0.045);
+
+            border:
+                1px solid #dbcabb;
+
+            border-radius: 14px;
+
+            padding: 17px;
+
+            margin-top: 12px;
+        }
+
+        .label {
+
+            color: var(--brown);
+
+            font-size: 11px;
+
+            font-weight: 900;
+
+            letter-spacing: 1.2px;
+
+            margin-bottom: 7px;
+        }
+
+        .explain-box p,
+        .recommendation p {
+
+            color: #67576a;
+
+            font-size: 14px;
+        }
+
+        /* =====================================================
+           RECOMMENDATION
+           ===================================================== */
+
+        .recommendation {
+
+            background:
+                rgba(85, 122, 92, 0.07);
+
+            border:
+                1px solid #b9ccb9;
+
+            border-radius: 14px;
+
+            padding: 17px;
+
+            margin-top: 12px;
+        }
+
+        .recommendation .label {
+
+            color: var(--green);
+        }
+
+        /* =====================================================
+           RANDOM FOREST
+           ===================================================== */
+
+        .ml-panel {
+
+            margin-top: 16px;
+
+            padding: 18px;
+
+            background: #f1e7da;
+
+            border:
+                1px solid #d0bda9;
+
+            border-radius: 16px;
+        }
+
+        .ml-header {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            margin-bottom: 12px;
+        }
+
+        .ml-header strong {
+
+            color: #4a3526;
+
+            font-size: 15px;
+        }
+
+        .ml-badge {
+
+            background: #e9dfd2;
+
+            color: #805f43;
+
+            border:
+                1px solid #cdb9a5;
+
+            border-radius: 999px;
+
+            padding: 5px 10px;
+
+            font-size: 11px;
+
+            font-weight: 800;
+        }
+
+        .ml-item {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 10px 0;
+
+            border-bottom:
+                1px solid rgba(139, 94, 60, 0.12);
+        }
+
+        .ml-item:last-child {
+
+            border-bottom: none;
+        }
+
+        .ml-item span {
+
+            color: #806e60;
+
+            font-size: 13px;
+        }
+
+        .ml-item strong {
+
+            color: #5d4939;
+
+            font-size: 13px;
+
+            text-align: right;
+
+            word-break: break-word;
+        }
+
+        /* =====================================================
+           CLEAN RESULT
+           ===================================================== */
+
+        .clean-result {
+
+            display: flex;
+
+            gap: 18px;
+
+            align-items: center;
+
+            background:
+                rgba(85, 122, 92, 0.07);
+
+            border:
+                1px solid #b9ccb9;
+
+            border-radius: 18px;
+
+            padding: 24px;
+        }
+
+        .clean-icon {
+
+            width: 52px;
+            height: 52px;
+
+            border-radius: 50%;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            background: #e5f0e6;
+
+            color: var(--green);
+
+            font-size: 25px;
+
+            font-weight: 900;
+        }
+
+        .clean-result h3 {
+
+            color: var(--green);
+
+            margin-bottom: 4px;
+        }
+
+        .clean-result p {
+
+            color: var(--muted);
+        }
+
+        /* =====================================================
+           CLUSTERS
+           ===================================================== */
+
+        .cluster-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 15px;
+        }
+
+        .cluster {
+
+            background: var(--panel);
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 18px;
+
+            padding: 20px;
+
+            box-shadow: var(--shadow);
+        }
+
+        .cluster h3 {
+
+            font-size: 16px;
+
+            color: var(--brown);
+        }
+
+        .cluster-count {
+
+            font-size: 34px;
+
+            font-weight: 900;
+
+            color: var(--text);
+
+            margin-top: 8px;
+        }
+
+        .cluster p {
+
+            color: var(--muted);
+
+            font-size: 13px;
+        }
+
+        /* =====================================================
+           GENERAL CARD
+           ===================================================== */
+
+        .card {
+
+            background: var(--panel);
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 20px;
+
+            padding: 25px;
+
+            box-shadow: var(--shadow);
+        }
+
+        .card h2 {
+
+            margin-bottom: 8px;
+
+            color: var(--text);
+        }
+
+        .card > p {
+
+            color: var(--muted);
+
+            margin-bottom: 10px;
+        }
+
+        /* =====================================================
+           PASSPORT / BLOCKCHAIN
+           ===================================================== */
+
+        .proof-box {
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(139, 94, 60, 0.07),
+                    rgba(154, 107, 50, 0.03)
+                );
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 20px;
+
+            padding: 25px;
+
+            box-shadow: var(--shadow);
+        }
+
+        .proof-box h2 {
+
+            margin-bottom: 18px;
+        }
+
+        .proof-id {
+
+            display: inline-block;
+
+            background: #eee1d2;
+
+            color: #4a3526;
+
+            border:
+                1px solid #cdb9a5;
+
+            border-radius: 10px;
+
+            padding: 9px 13px;
+
+            font-weight: 800;
+
+            margin-bottom: 15px;
+
+            word-break: break-word;
+        }
+
+        .proof-line {
+
+            padding: 8px 0;
+
+            color: var(--muted);
+
+            border-bottom:
+                1px solid rgba(139, 94, 60, 0.10);
+        }
+
+        .proof-line strong {
+
+            color: var(--text);
+        }
+
+        .hash-label {
+
+            margin-top: 18px;
+
+            color: var(--brown);
+
+            font-size: 11px;
+
+            font-weight: 900;
+
+            letter-spacing: 1px;
+        }
+
+        .hash {
+
+            margin-top: 7px;
+
+            padding: 13px;
+
+            background: #f1e6d8;
+
+            border:
+                1px solid #d8c6b4;
+
+            border-radius: 10px;
+
+            font-family:
+                Consolas,
+                monospace;
+
+            font-size: 12px;
+
+            color: #5c493a;
+
+            word-break: break-all;
+        }
+
+        .ready {
+
+            display: inline-block;
+
+            background: #e7f0e8;
+
+            color: var(--green);
+
+            border:
+                1px solid #b7cbb9;
+
+            padding: 9px 14px;
+
+            border-radius: 999px;
+
+            font-weight: 900;
+
+            font-size: 13px;
+        }
+
+        .blockchain-note {
+
+            color: var(--muted);
+
+            margin-top: 15px;
+
+            font-size: 14px;
+        }
+
+        /* =====================================================
+           DISCLAIMER
+           ===================================================== */
+
+        .disclaimer {
+
+            background: #f7eadc;
+
+            border:
+                1px solid #d8c0a7;
+
+            border-left:
+                5px solid var(--yellow);
+
+            border-radius: 14px;
+
+            padding: 20px;
+        }
+
+        .disclaimer strong {
+
+            color: #946b36;
+        }
+
+        .disclaimer p {
+
+            margin-top: 7px;
+
+            color: #806e60;
+
+            font-size: 13px;
+        }
+
+        /* =====================================================
+           ERROR
+           ===================================================== */
+
+        .error {
+
+            background: #f8e8e5;
+
+            border:
+                1px solid #d8aaa0;
+
+            border-radius: 20px;
+
+            padding: 30px;
+
+            box-shadow: var(--shadow);
+        }
+
+        .error h1 {
+
+            color: var(--red);
+
+            margin-bottom: 10px;
+        }
+
+        .error p {
+
+            color: #76564d;
+
+            margin-bottom: 20px;
+
+            word-break: break-word;
+        }
+
+        /* =====================================================
+           BUTTONS
+           ===================================================== */
+
+        .actions {
+
+            display: flex;
+
+            gap: 12px;
+
+            flex-wrap: wrap;
+
+            margin-top: 25px;
+        }
+
+        .button {
+
+            display: inline-block;
+
+            text-decoration: none;
+
+            padding: 12px 18px;
+
+            border-radius: 12px;
+
+            background: #fffaf3;
+
+            color: var(--brown);
+
+            border:
+                1px solid #cbb8a5;
+
+            font-weight: 800;
+
+            font-size: 14px;
+
+            transition: 0.2s ease;
+        }
+
+        .button:hover {
+
+            border-color: var(--brown);
+
+            transform: translateY(-1px);
+        }
+
+        .button.primary {
+
+            background: var(--brown);
+
+            color: white;
+
+            border-color: var(--brown);
+        }
+
+        .button.primary:hover {
+
+            background: var(--brown-dark);
+
+            border-color: var(--brown-dark);
+        }
+
+        /* =====================================================
+           FOOTER
+           ===================================================== */
+
+        footer {
+
+            text-align: center;
+
+            padding: 25px 15px 40px;
+
+            color: #927f6f;
+
+            font-size: 13px;
+
+            border-top:
+                1px solid var(--border);
+        }
+
+        footer strong {
+
+            color: var(--brown);
+        }
+
+        /* =====================================================
+           MOBILE
+           ===================================================== */
+
+        @media (max-width: 850px) {
+
+            .result-header {
+
+                grid-template-columns: 1fr;
+            }
+
+            .score {
+
+                margin: 10px auto 0;
+            }
+
+            .result-grid {
+
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .cluster-grid {
+
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+        @media (max-width: 600px) {
+
+            .nav {
+
+                flex-direction: column;
+
+                gap: 12px;
+            }
+
+            .navlinks {
+
+                gap: 14px;
+
+                flex-wrap: wrap;
+
+                justify-content: center;
+            }
+
+            .container {
+
+                width: 94%;
+
+                margin-top: 25px;
+            }
+
+            .result-header {
+
+                padding: 22px;
+            }
+
+            .finding {
+
+                padding: 18px;
+            }
+
+            .finding-header {
+
+                flex-wrap: wrap;
+            }
+
+            .severity {
+
+                margin-left: 57px;
+            }
+
+            .stats {
+
+                grid-template-columns: 1fr 1fr;
+
+                gap: 10px;
+            }
+
+            .stat {
+
+                padding: 17px 10px;
+            }
+
+            .stat strong {
+
+                font-size: 25px;
+            }
+
+            .ml-header {
+
+                flex-direction: column;
+
+                align-items: flex-start;
+            }
+
+            .ml-item {
+
+                flex-direction: column;
+
+                gap: 3px;
+            }
+
+            .ml-item strong {
+
+                text-align: left;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     NAVBAR
+     ===================================================== -->
+
+<nav class="nav">
+
+    <div class="logo">
+        SecureCode <span>AI</span>
+    </div>
+
+    <div class="navlinks">
+
+        <a href="/">
+            Home
+        </a>
+
+        {% if session.get('user_id') %}
+
+            <a href="/dashboard">
+                Dashboard
+            </a>
+
+            <a href="/logout">
+                Logout
+            </a>
+
+        {% else %}
+
+            <a href="/login">
+                Login
+            </a>
+
+            <a href="/register">
+                Create Account
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</nav>
+
+
+<!-- =====================================================
+     MAIN
+     ===================================================== -->
+
+<main class="container">
+
+
+{% if error %}
+
+
+<!-- =====================================================
+     ERROR
+     ===================================================== -->
+
+<section class="error">
+
+    <div class="eyebrow">
+        SECURITY SCAN
+    </div>
+
+    <h1>
+        Security Scan Error
+    </h1>
+
+    <p>
+        {{ error }}
+    </p>
+
+    <a href="/" class="button primary">
+        Back to Home
+    </a>
+
+</section>
+
+
+{% else %}
+
+
+<!-- =====================================================
+     RESULT HEADER
+     ===================================================== -->
+
+<section class="result-header">
+
+    <div>
+
+        <div class="eyebrow">
+            SECURITY AUDIT REPORT
+        </div>
+
+        <h1 class="project-name">
+            {{ data.filename }}
+        </h1>
+
+        <p class="subtitle">
+            Automated source-code security analysis powered by
+            pattern detection and Random Forest classification.
+        </p>
+
+    </div>
+
+
+    <div class="score">
+
+        <strong>
+            {{ data.score }}
+        </strong>
+
+        <small>
+            /100
+        </small>
+
+        <div class="score-label">
+            Security Score
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     RISK + VERDICT
+     ===================================================== -->
+
+<section class="result-grid">
+
+    <div class="risk">
+
+        <strong>
+            Risk Level
+        </strong>
+
+        <span>
+            {{ data.risk_level }}
+        </span>
+
+    </div>
+
+
+    <div class="verdict">
+
+        <div class="verdict-title">
+            Security Verdict
+        </div>
+
+        {% if data.findings %}
+
+            <p>
+                Potential security issues were detected in the
+                analyzed source code. Review the findings below
+                before deployment.
+            </p>
+
+        {% else %}
+
+            <p>
+                No potential security issues were detected in the
+                analyzed source code.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     STATISTICS
+     ===================================================== -->
+
+<section class="stats">
+
+    <div class="stat">
+
+        <strong>
+            {{ data.files_scanned }}
+        </strong>
+
+        <span>
+            Files Scanned
+        </span>
+
+    </div>
+
+
+    <div class="stat">
+
+        <strong>
+            {{ data.findings|length }}
+        </strong>
+
+        <span>
+            Findings
+        </span>
+
+    </div>
+
+
+    <div class="stat">
+
+        <strong>
+
+            {% if data.ml %}
+                {{ data.ml.trees }}
+            {% else %}
+                9
+            {% endif %}
+
+        </strong>
+
+        <span>
+            RF Trees
+        </span>
+
+    </div>
+
+
+    <div class="stat">
+
+        <strong>
+
+            {% if data.clusters %}
+                {{ data.clusters|length }}
+            {% else %}
+                0
+            {% endif %}
+
+        </strong>
+
+        <span>
+            Risk Clusters
+        </span>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     FINDINGS
+     ===================================================== -->
+
+<section>
+
+    <div class="section-title">
+
+        <div class="eyebrow">
+            SECURITY FINDINGS
+        </div>
+
+        <h2>
+            Detected Security Issues
+        </h2>
+
+    </div>
+
+
+    {% if data.findings %}
+
+
+        {% for finding in data.findings %}
+
+
+        <article class="finding">
+
+
+            <div class="finding-header">
+
+                <div class="finding-icon">
+                    ⚠
+                </div>
+
+
+                <div class="finding-title">
+
+                    <h3>
+                        {{ finding.type }}
+                    </h3>
+
+                    <p class="finding-message">
+                        {{ finding.message }}
+                    </p>
+
+                </div>
+
+
+                <div class="severity
+                    {% if finding.ml_severity %}
+                        {{ finding.ml_severity|lower }}
+                    {% elif finding.severity %}
+                        {{ finding.severity|lower }}
+                    {% else %}
+                        low
+                    {% endif %}
+                ">
+
+                    {% if finding.ml_severity %}
+
+                        {{ finding.ml_severity }}
+
+                    {% elif finding.severity %}
+
+                        {{ finding.severity }}
+
+                    {% else %}
+
+                        Unknown
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- FILE -->
+
+            <div class="file-box">
+
+                <span>
+                    File:
+                </span>
+
+                {% if finding.file %}
+
+                    {% set clean_file =
+                        finding.file.replace('\\','/').split('/')
+                    %}
+
+                    {% if clean_file|length >= 2 %}
+
+                        {{ clean_file[-2] }}/{{ clean_file[-1] }}
+
+                    {% else %}
+
+                        {{ clean_file[0] }}
+
+                    {% endif %}
+
+                {% else %}
+
+                    Source Code
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- WHAT DETECTED -->
+
+            <div class="explain-box">
+
+                <div class="label">
+                    WHAT SECURECODE AI DETECTED
+                </div>
+
+                <p>
+
+                    {% if finding.explanation %}
+
+                        {{ finding.explanation }}
+
+                    {% elif finding.message %}
+
+                        {{ finding.message }}
+
+                    {% else %}
+
+                        A potentially unsafe coding pattern
+                        was detected during static analysis.
+
+                    {% endif %}
+
+                </p>
+
+            </div>
+
+
+            <!-- WHY THIS MATTERS -->
+
+            <div class="explain-box">
+
+                <div class="label">
+                    WHY THIS MATTERS
+                </div>
+
+                <p>
+
+                    {% if finding.impact %}
+
+                        {{ finding.impact }}
+
+                    {% else %}
+
+                        This pattern may introduce a security
+                        weakness that could be exploited if the
+                        application is deployed without review.
+
+                    {% endif %}
+
+                </p>
+
+            </div>
+
+
+            <!-- BUSINESS IMPACT -->
+
+            <div class="explain-box">
+
+                <div class="label">
+                    BUSINESS IMPACT
+                </div>
+
+                <p>
+                    A security issue in production may result in
+                    unauthorized access, data exposure, service
+                    disruption, loss of customer trust, or
+                    additional remediation cost depending on how
+                    the affected code is used.
+                </p>
+
+            </div>
+
+
+            <!-- RECOMMENDATION -->
+
+            <div class="recommendation">
+
+                <div class="label">
+                    RECOMMENDED ACTION
+                </div>
+
+                <p>
+
+                    {% if finding.recommendation %}
+
+                        {{ finding.recommendation }}
+
+                    {% else %}
+
+                        Review this finding manually and apply
+                        an appropriate secure coding practice
+                        before deployment.
+
+                    {% endif %}
+
+                </p>
+
+            </div>
+
+
+            <!-- RANDOM FOREST -->
+
+            <div class="ml-panel">
+
+                <div class="ml-header">
+
+                    <strong>
+                        🌲 Random Forest Analysis
+                    </strong>
+
+                    <span class="ml-badge">
+                        9-Tree Ensemble
+                    </span>
+
+                </div>
+
+
+                <div class="ml-item">
+
+                    <span>
+                        ML Severity
+                    </span>
+
+                    <strong>
+
+                        {% if finding.ml_severity %}
+
+                            {{ finding.ml_severity }}
+
+                        {% elif finding.severity %}
+
+                            {{ finding.severity }}
+
+                        {% else %}
+
+                            Unknown
+
+                        {% endif %}
+
+                    </strong>
+
+                </div>
+
+
+                <div class="ml-item">
+
+                    <span>
+                        Confidence
+                    </span>
+
+                    <strong>
+
+                        {% if finding.ml_confidence is defined %}
+
+                            {{ finding.ml_confidence }}%
+
+                        {% else %}
+
+                            N/A
+
+                        {% endif %}
+
+                    </strong>
+
+                </div>
+
+
+                {% if finding.ml_votes %}
+
+                <div class="ml-item">
+
+                    <span>
+                        Tree Voting
+                    </span>
+
+                    <strong>
+
+                        High:
+                        {{ finding.ml_votes.get('High', 0) }}
+
+                        &nbsp; | &nbsp;
+
+                        Medium:
+                        {{ finding.ml_votes.get('Medium', 0) }}
+
+                        &nbsp; | &nbsp;
+
+                        Low:
+                        {{ finding.ml_votes.get('Low', 0) }}
+
+                    </strong>
+
+                </div>
+
+                {% endif %}
+
+
+                {% if finding.cluster %}
+
+                <div class="ml-item">
+
+                    <span>
+                        Vulnerability Cluster
+                    </span>
+
+                    <strong>
+                        {{ finding.cluster }}
+                    </strong>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+
+        </article>
+
+
+        {% endfor %}
+
+
+    {% else %}
+
+
+    <!-- CLEAN RESULT -->
+
+    <div class="clean-result">
+
+        <div class="clean-icon">
+            ✓
+        </div>
+
+        <div>
+
+            <h3>
+                No Potential Vulnerabilities Detected
+            </h3>
+
+            <p>
+                SecureCode AI did not identify any of the
+                currently supported security patterns in
+                the analyzed source code.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    {% endif %}
+
+</section>
+
+
+<!-- =====================================================
+     CLUSTERS
+     
+     IMPORTANT:
+     app.py returns:
+     
+     {
+        "Credential Exposure": 1,
+        "Injection Risks": 2
+     }
+     
+     Therefore items is an INTEGER.
+     DO NOT use items|length.
+     ===================================================== -->
+
+{% if data.clusters %}
+
+<section>
+
+    <div class="section-title">
+
+        <div class="eyebrow">
+            RISK CLASSIFICATION
+        </div>
+
+        <h2>
+            Vulnerability Clusters
+        </h2>
+
+    </div>
+
+
+    <div class="cluster-grid">
+
+
+        {% for name, count in data.clusters.items() %}
+
+
+        <div class="cluster">
+
+            <h3>
+                {{ name }}
+            </h3>
+
+            <div class="cluster-count">
+                {{ count }}
+            </div>
+
+            <p>
+                security finding(s)
+            </p>
+
+        </div>
+
+
+        {% endfor %}
+
+
+    </div>
+
+</section>
+
+{% endif %}
+
+
+<!-- =====================================================
+     ML SUMMARY
+     ===================================================== -->
+
+{% if data.ml %}
+
+<section class="card">
+
+    <div class="eyebrow">
+        MACHINE LEARNING
+    </div>
+
+    <h2>
+        Random Forest Security Classification
+    </h2>
+
+    <p>
+        SecureCode AI uses a lightweight Random Forest
+        ensemble to classify scanner-generated findings
+        using extracted security features.
+    </p>
+
+
+    <div class="ml-panel">
+
+        <div class="ml-item">
+
+            <span>
+                Model
+            </span>
+
+            <strong>
+                {{ data.ml.model }}
+            </strong>
+
+        </div>
+
+
+        <div class="ml-item">
+
+            <span>
+                Decision Trees
+            </span>
+
+            <strong>
+                {{ data.ml.trees }}
+            </strong>
+
+        </div>
+
+
+        <div class="ml-item">
+
+            <span>
+                Average Confidence
+            </span>
+
+            <strong>
+                {{ data.ml.average_confidence }}%
+            </strong>
+
+        </div>
+
+
+        <div class="ml-item">
+
+            <span>
+                High Severity Findings
+            </span>
+
+            <strong>
+                {{ data.ml.high }}
+            </strong>
+
+        </div>
+
+
+        <div class="ml-item">
+
+            <span>
+                Medium Severity Findings
+            </span>
+
+            <strong>
+                {{ data.ml.medium }}
+            </strong>
+
+        </div>
+
+
+        <div class="ml-item">
+
+            <span>
+                Low Severity Findings
+            </span>
+
+            <strong>
+                {{ data.ml.low }}
+            </strong>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endif %}
+
+
+<!-- =====================================================
+     SECURITY PASSPORT
+     ===================================================== -->
+
+{% if data.passport %}
+
+<section class="proof-box">
+
+    <div class="eyebrow">
+        SECURITY PASSPORT
+    </div>
+
+    <h2>
+        Security Verification Passport
+    </h2>
+
+
+    <div class="proof-id">
+
+        Passport ID:
+        {{ data.passport.passport_id }}
+
+    </div>
+
+
+    <div class="proof-line">
+
+        <strong>
+            Website / Project:
+        </strong>
+
+        {{ data.passport.website_name }}
+
+    </div>
+
+
+    <div class="proof-line">
+
+        <strong>
+            Score:
+        </strong>
+
+        {{ data.passport.score }}/100
+
+    </div>
+
+
+    <div class="proof-line">
+
+        <strong>
+            Files Scanned:
+        </strong>
+
+        {{ data.passport.files_scanned }}
+
+    </div>
+
+
+    <div class="proof-line">
+
+        <strong>
+            Findings:
+        </strong>
+
+        {{ data.passport.findings_count }}
+
+    </div>
+
+
+    <div class="proof-line">
+
+        <strong>
+            Hash Algorithm:
+        </strong>
+
+        {{ data.passport.hash_algorithm }}
+
+    </div>
+
+
+    {% if data.passport.report_hash %}
+
+    <div class="hash-label">
+        REPORT HASH
+    </div>
+
+    <div class="hash">
+        {{ data.passport.report_hash }}
+    </div>
+
+    {% endif %}
+
+
+</section>
+
+{% endif %}
+
+
+<!-- =====================================================
+     BLOCKCHAIN
+     ===================================================== -->
+
+{% if data.blockchain %}
+
+<section class="proof-box">
+
+    <div class="eyebrow">
+        BLOCKCHAIN INTEGRITY
+    </div>
+
+    <h2>
+        Blockchain Proof
+    </h2>
+
+
+    <div class="ready">
+        ✓ Blockchain Proof Ready
+    </div>
+
+
+    <p class="blockchain-note">
+
+        The report hash has been prepared as a cryptographic
+        proof for future blockchain verification.
+
+        <br><br>
+
+        <strong>
+            Current hackathon prototype:
+        </strong>
+
+        this represents a blockchain-ready proof and does
+        not claim that a real on-chain transaction has been
+        submitted.
+
+    </p>
+
+
+    {% if data.blockchain.proof_hash %}
+
+    <div class="hash-label">
+        PROOF HASH
+    </div>
+
+    <div class="hash">
+        {{ data.blockchain.proof_hash }}
+    </div>
+
+    {% endif %}
+
+
+</section>
+
+{% endif %}
+
+
+<!-- =====================================================
+     DISCLAIMER
+     ===================================================== -->
+
+<section class="disclaimer">
+
+    <strong>
+        ⚠ Important Security Notice
+    </strong>
+
+    <p>
+
+        SecureCode AI provides automated, pattern-based
+        security analysis and may produce false positives
+        or miss certain vulnerabilities.
+
+        A clean result does not guarantee that the analyzed
+        code is completely secure.
+
+        Always perform manual security review and appropriate
+        professional security testing before deploying a
+        website.
+
+    </p>
+
+</section>
+
+
+<!-- =====================================================
+     ACTION BUTTONS
+     ===================================================== -->
+
+<section class="actions">
+
+    <a href="/" class="button primary">
+        New Security Scan
+    </a>
+
+
+    {% if session.get('user_id') %}
+
+    <a href="/dashboard" class="button">
+        View Dashboard
+    </a>
+
+    {% endif %}
+
+</section>
+
+
+{% endif %}
+
+</main>
+
+
+<!-- =====================================================
+     FOOTER
+     ===================================================== -->
+
+<footer>
+
+    <strong>
+        SecureCode AI
+    </strong>
+
+    — Verify the Code. Protect the Business.
+
+</footer>
+
+
+</body>
+
+</html>

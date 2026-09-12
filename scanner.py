@@ -4,6 +4,12 @@ import zipfile
 import tempfile
 import shutil
 
+from ml_classifier import analyze_findings
+
+
+# =========================================================
+# SUPPORTED FILE TYPES
+# =========================================================
 
 ALLOWED_EXTENSIONS = {
     ".html", ".htm", ".css", ".js", ".jsx",
@@ -12,6 +18,10 @@ ALLOWED_EXTENSIONS = {
     ".sql", ".env", ".txt"
 }
 
+
+# =========================================================
+# SAFE ZIP PATH CHECK
+# =========================================================
 
 def is_safe_path(base_path, target_path):
     base_path = os.path.abspath(base_path)
@@ -44,6 +54,10 @@ def extract_zip_safely(zip_path, extract_to):
         zip_file.extractall(extract_to)
 
 
+# =========================================================
+# FINDING CREATOR
+# =========================================================
+
 def add_finding(
     findings,
     finding_type,
@@ -66,13 +80,19 @@ def add_finding(
     })
 
 
+# =========================================================
+# STATIC SECURITY SCANNER
+# =========================================================
+
 def scan_content(content, file_path="Pasted Code"):
 
     findings = []
 
-    # ------------------------------------------------
-    # 1. Hardcoded Password
-    # ------------------------------------------------
+    extension = os.path.splitext(file_path)[1].lower()
+
+    # =====================================================
+    # 1. HARDCODED PASSWORD
+    # =====================================================
 
     password_pattern = re.compile(
         r"(password|passwd|pwd)"
@@ -93,9 +113,10 @@ def scan_content(content, file_path="Pasted Code"):
             "Passwords should generally never be permanently embedded inside application source code."
         )
 
-    # ------------------------------------------------
-    # 2. Possible API Key / Secret
-    # ------------------------------------------------
+
+    # =====================================================
+    # 2. POSSIBLE API KEY / SECRET
+    # =====================================================
 
     api_pattern = re.compile(
         r"(api[\-_]?key|secret[\-_]?key)"
@@ -116,80 +137,108 @@ def scan_content(content, file_path="Pasted Code"):
             "Credentials inside source code can accidentally become public through GitHub repositories, website deployments, backups, or shared project files."
         )
 
-    # ------------------------------------------------
-    # 3. JavaScript eval()
-    # ------------------------------------------------
 
-    if re.search(
-        r"\beval\s*\(",
-        content,
-        re.IGNORECASE
-    ):
+    # =====================================================
+    # 3. JAVASCRIPT eval()
+    # =====================================================
 
-        add_finding(
-            findings,
-            "Dangerous JavaScript Function",
-            "Medium",
-            file_path,
-            "The eval() function was detected in the analyzed code.",
-            "Avoid eval() whenever possible. Use safer alternatives that do not execute dynamically supplied code.",
-            "If untrusted input reaches eval(), an attacker may potentially influence what code is executed in the application.",
-            "eval() converts a string into executable JavaScript, which makes it difficult to control and safely validate dynamic input."
+    if extension in {
+        ".js", ".jsx", ".ts", ".tsx",
+        ".html", ".htm"
+    }:
+
+        if re.search(
+            r"\beval\s*\(",
+            content,
+            re.IGNORECASE
+        ):
+
+            add_finding(
+                findings,
+                "Dangerous JavaScript Function",
+                "Medium",
+                file_path,
+                "The eval() function was detected in the analyzed code.",
+                "Avoid eval() whenever possible. Use safer alternatives that do not execute dynamically supplied code.",
+                "If untrusted input reaches eval(), an attacker may potentially influence what code is executed in the application.",
+                "eval() converts a string into executable JavaScript, which makes it difficult to control and safely validate dynamic input."
+            )
+
+
+    # =====================================================
+    # 4. INNERHTML / POSSIBLE XSS
+    # =====================================================
+
+    if extension in {
+        ".js", ".jsx", ".ts", ".tsx",
+        ".html", ".htm"
+    }:
+
+        if re.search(
+            r"\.innerHTML\s*=",
+            content,
+            re.IGNORECASE
+        ):
+
+            add_finding(
+                findings,
+                "Potential XSS Risk",
+                "Medium",
+                file_path,
+                "Direct assignment to innerHTML was detected.",
+                "When inserting untrusted text, prefer safer DOM APIs such as textContent. If HTML must be inserted, sanitize the content appropriately.",
+                "If attacker-controlled content is inserted into innerHTML without proper sanitization, malicious browser-side content may potentially be executed.",
+                "Using innerHTML is not automatically a vulnerability, but it becomes risky when the assigned value contains untrusted user-controlled data."
+            )
+
+
+    # =====================================================
+    # 5. POSSIBLE SQL INJECTION
+    # =====================================================
+
+    if extension in {
+        ".php", ".py", ".java",
+        ".js", ".jsx", ".ts", ".tsx",
+        ".sql"
+    }:
+
+        sql_pattern = re.compile(
+            r"(SELECT|INSERT|UPDATE|DELETE)"
+            r".*(\+|\$\{|%s)",
+            re.IGNORECASE
         )
 
-    # ------------------------------------------------
-    # 4. innerHTML
-    # ------------------------------------------------
+        if sql_pattern.search(content):
 
-    if re.search(
-        r"\.innerHTML\s*=",
-        content,
-        re.IGNORECASE
-    ):
+            add_finding(
+                findings,
+                "Possible SQL Injection Risk",
+                "High",
+                file_path,
+                "CodeSecure detected a pattern that may indicate SQL queries are being constructed using dynamically combined values.",
+                "Use parameterized queries or prepared statements instead of directly combining user-controlled values with SQL statements.",
+                "Unsafe SQL construction can potentially allow manipulated input to change the intended database query.",
+                "This is a pattern-based detection. CodeSecure cannot determine from this check alone whether the input is actually attacker-controlled."
+            )
 
-        add_finding(
-            findings,
-            "Potential XSS Risk",
-            "Medium",
-            file_path,
-            "Direct assignment to innerHTML was detected.",
-            "When inserting untrusted text, prefer safer DOM APIs such as textContent. If HTML must be inserted, sanitize the content appropriately.",
-            "If attacker-controlled content is inserted into innerHTML without proper sanitization, malicious browser-side content may potentially be executed.",
-            "Using innerHTML is not automatically a vulnerability, but it becomes risky when the assigned value contains untrusted user-controlled data."
-        )
 
-    # ------------------------------------------------
-    # 5. Possible SQL Injection
-    # ------------------------------------------------
+    # =====================================================
+    # 6. HTTP INSTEAD OF HTTPS
+    # =====================================================
 
-    sql_pattern = re.compile(
-        r"(SELECT|INSERT|UPDATE|DELETE)"
-        r".*(\+|\$\{|%s)",
+    http_pattern = re.compile(
+        r"https?://[^\s\"'<>]+",
         re.IGNORECASE
     )
 
-    if sql_pattern.search(content):
+    http_matches = http_pattern.findall(content)
 
-        add_finding(
-            findings,
-            "Possible SQL Injection Risk",
-            "High",
-            file_path,
-            "CodeSecure detected a pattern that may indicate SQL queries are being constructed using dynamically combined values.",
-            "Use parameterized queries or prepared statements instead of directly combining user-controlled values with SQL statements.",
-            "Unsafe SQL construction can potentially allow manipulated input to change the intended database query.",
-            "This is a pattern-based detection. CodeSecure cannot determine from this check alone whether the input is actually attacker-controlled."
-        )
+    insecure_http_found = any(
+        url.lower().startswith("http://")
+        for url in http_matches
+    )
 
-    # ------------------------------------------------
-    # 6. HTTP instead of HTTPS
-    # ------------------------------------------------
-
-    if re.search(
-        r"http://",
-        content,
-        re.IGNORECASE
-    ):
+    if insecure_http_found:
 
         add_finding(
             findings,
@@ -202,29 +251,47 @@ def scan_content(content, file_path="Pasted Code"):
             "Some HTTP references may be intentional or harmless, so this finding should be manually reviewed."
         )
 
-    # ------------------------------------------------
-    # 7. Debug Mode
-    # ------------------------------------------------
 
-    if re.search(
-        r"debug\s*=\s*True",
-        content,
-        re.IGNORECASE
-    ):
+    # =====================================================
+    # 7. DEBUG MODE
+    # =====================================================
 
-        add_finding(
-            findings,
-            "Debug Mode Enabled",
-            "Medium",
-            file_path,
-            "Debug mode appears to be enabled in the analyzed code.",
-            "Disable debug mode before deploying the website to production.",
-            "Debug configurations can sometimes expose detailed error information, application paths, configuration details, or other information that should not be visible to visitors.",
-            "Debug mode is useful during development but should normally be disabled in a production environment."
-        )
+    if extension == ".py":
+
+        if re.search(
+            r"debug\s*=\s*True",
+            content,
+            re.IGNORECASE
+        ):
+
+            add_finding(
+                findings,
+                "Debug Mode Enabled",
+                "Medium",
+                file_path,
+                "Debug mode appears to be enabled in the analyzed Python code.",
+                "Disable debug mode before deploying the website to production.",
+                "Debug configurations can sometimes expose detailed error information, application paths, configuration details, or other information that should not be visible to visitors.",
+                "Debug mode is useful during development but should normally be disabled in a production environment."
+            )
+
+
+    # =====================================================
+    # 8. ML CLASSIFICATION + CLUSTERING
+    # =====================================================
+
+    if findings:
+
+        ml_result = analyze_findings(findings)
+
+        return ml_result["findings"]
 
     return findings
 
+
+# =========================================================
+# SCAN SINGLE FILE
+# =========================================================
 
 def scan_file(file_path):
 
@@ -249,7 +316,14 @@ def scan_file(file_path):
     )
 
 
-def scan_pasted_code(code, language="Unknown"):
+# =========================================================
+# SCAN PASTED CODE
+# =========================================================
+
+def scan_pasted_code(
+    code,
+    language="Unknown"
+):
 
     if not code or not code.strip():
 
@@ -272,6 +346,10 @@ def scan_pasted_code(code, language="Unknown"):
     }
 
 
+# =========================================================
+# SCAN COMPLETE ZIP PROJECT
+# =========================================================
+
 def scan_project(zip_path):
 
     temp_directory = tempfile.mkdtemp(
@@ -283,10 +361,19 @@ def scan_project(zip_path):
 
     try:
 
+        # -------------------------------------------------
+        # SAFE EXTRACTION
+        # -------------------------------------------------
+
         extract_zip_safely(
             zip_path,
             temp_directory
         )
+
+
+        # -------------------------------------------------
+        # WALK THROUGH PROJECT
+        # -------------------------------------------------
 
         for root, directories, files in os.walk(
             temp_directory
@@ -301,6 +388,7 @@ def scan_project(zip_path):
                 if extension not in ALLOWED_EXTENSIONS:
                     continue
 
+
                 file_path = os.path.join(
                     root,
                     filename
@@ -308,19 +396,27 @@ def scan_project(zip_path):
 
                 files_scanned += 1
 
+
                 file_findings = scan_file(
                     file_path
                 )
 
+
                 findings.extend(
                     file_findings
                 )
+
+
+        # -------------------------------------------------
+        # RETURN RESULT
+        # -------------------------------------------------
 
         return {
             "files_scanned": files_scanned,
             "findings": findings,
             "status": "success"
         }
+
 
     except Exception as error:
 
@@ -331,7 +427,12 @@ def scan_project(zip_path):
             "error": str(error)
         }
 
+
     finally:
+
+        # -------------------------------------------------
+        # DELETE TEMPORARY EXTRACTED PROJECT
+        # -------------------------------------------------
 
         shutil.rmtree(
             temp_directory,
