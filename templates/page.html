@@ -1363,7 +1363,806 @@
 </section>
 
 
-{% else %}
+{% elif page == 'audit' %}
+
+
+<!-- =====================================================
+     SECURITY AUDIT INFO PAGE
+     ===================================================== -->
+
+<section class="card">
+
+    <div class="eyebrow">
+        SECURITY AUDIT ENGINE
+    </div>
+
+    <h2>
+        Static Code Security Analysis
+    </h2>
+
+    <p>
+        SecureCode AI performs automated static analysis on your
+        source code to detect suspicious security patterns. The
+        scanner examines files for common vulnerability indicators
+        without executing any code.
+    </p>
+
+</section>
+
+
+<section class="card" style="margin-top:18px;">
+
+    <h2>
+        What We Scan For
+    </h2>
+
+    <div class="ml-panel">
+
+        <div class="ml-item">
+            <span>Hardcoded Passwords</span>
+            <strong>Credentials embedded directly in source code</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>API Keys &amp; Secrets</span>
+            <strong>Exposed API keys, tokens, and secret values</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>SQL Injection Risks</span>
+            <strong>Dynamically constructed SQL queries</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>XSS / innerHTML</span>
+            <strong>Unsafe DOM manipulation patterns</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Dangerous Functions</span>
+            <strong>Use of eval() and similar execution functions</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Insecure Transport</span>
+            <strong>HTTP references instead of HTTPS</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Debug Mode</span>
+            <strong>Debug configurations left enabled</strong>
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="card" style="margin-top:18px;">
+
+    <h2>
+        Supported File Types
+    </h2>
+
+    <p>
+        HTML, CSS, JavaScript, TypeScript, JSX, TSX, PHP,
+        Python, Java, C, C++, JSON, XML, SQL, .env, and
+        plain text files.
+    </p>
+
+</section>
+
+
+<section class="actions">
+
+    <a href="/" class="button primary">
+        Start a Security Scan →
+    </a>
+
+    <a href="/ml" class="button">
+        Learn About ML Classification
+    </a>
+
+</section>
+
+
+{% elif page == 'ai' %}
+
+
+<!-- =====================================================
+     AI ENGINE INFO PAGE
+     ===================================================== -->
+
+<section class="card">
+
+    <div class="eyebrow">
+        AI ENGINE
+    </div>
+
+    <h2>
+        AI-Powered Security Workflow
+    </h2>
+
+    <p>
+        SecureCode AI combines static pattern analysis with
+        machine learning classification to provide structured,
+        understandable security intelligence from raw source code.
+    </p>
+
+</section>
+
+
+<section class="card" style="margin-top:18px;">
+
+    <h2>
+        How the AI Engine Works
+    </h2>
+
+    <div class="ml-panel">
+
+        <div class="ml-item">
+            <span>Step 1 — Code Seal</span>
+            <strong>Generate a SHA-256 fingerprint for integrity tracking</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Step 2 — Pattern Detection</span>
+            <strong>Identify suspicious patterns via regex-based static analysis</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Step 3 — Feature Extraction</span>
+            <strong>Convert each finding into a 7-dimensional feature vector</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Step 4 — Random Forest Classification</span>
+            <strong>9-tree ensemble votes on severity (High / Medium / Low)</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Step 5 — Vulnerability Clustering</span>
+            <strong>Group related findings into logical security categories</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Step 6 — Blockchain Proof</span>
+            <strong>Create a tamper-evident cryptographic hash of the report</strong>
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="actions">
+
+    <a href="/" class="button primary">
+        Start a Security Scan →
+    </a>
+
+    <a href="/ml" class="button">
+        ML Model Details
+    </a>
+
+    <a href="/blockchain" class="button">
+        Blockchain Proof
+    </a>
+
+</section>
+
+
+{% elif page == 'ml' %}
+
+
+<!-- =====================================================
+     ML MODEL INFO PAGE
+     ===================================================== -->
+
+<section class="card">
+
+    <div class="eyebrow">
+        MACHINE LEARNING MODEL
+    </div>
+
+    <h2>
+        Random Forest Ensemble Classifier
+    </h2>
+
+    <p>
+        SecureCode AI uses a lightweight, zero-dependency Random Forest
+        ensemble to classify the severity of detected security findings.
+        No external ML frameworks are required.
+    </p>
+
+</section>
+
+
+<section class="card" style="margin-top:18px;">
+
+    <h2>
+        Model Architecture
+    </h2>
+
+    <div class="ml-panel">
+
+        <div class="ml-item">
+            <span>Model Type</span>
+            <strong>Lightweight Random Forest Ensemble</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Decision Trees</span>
+            <strong>9</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Feature Vector</span>
+            <strong>7 dimensions (keyword, credential, execution, injection, browser, transport, debug)</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Output Classes</span>
+            <strong>High / Medium / Low severity</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Confidence Metric</span>
+            <strong>Percentage of trees agreeing on the prediction</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>External Dependencies</span>
+            <strong>None — pure Python implementation</strong>
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="card" style="margin-top:18px;">
+
+    <h2>
+        Feature Extraction
+    </h2>
+
+    <p>
+        Each finding is converted into a binary feature vector based
+        on keyword presence: high-risk keywords, credential patterns,
+        execution functions, injection patterns, browser-side risks,
+        insecure transport, and debug flags.
+    </p>
+
+</section>
+
+
+<section class="actions">
+
+    <a href="/" class="button primary">
+        Start a Security Scan →
+    </a>
+
+    <a href="/clustering" class="button">
+        Vulnerability Clustering
+    </a>
+
+</section>
+
+
+{% elif page == 'clustering' %}
+
+
+<!-- =====================================================
+     CLUSTERING INFO PAGE
+     ===================================================== -->
+
+<section class="card">
+
+    <div class="eyebrow">
+        VULNERABILITY INTELLIGENCE
+    </div>
+
+    <h2>
+        Vulnerability Clustering
+    </h2>
+
+    <p>
+        After classification, SecureCode AI groups related findings
+        into meaningful security categories, making it easier to
+        understand the overall risk landscape of your codebase.
+    </p>
+
+</section>
+
+
+<section class="card" style="margin-top:18px;">
+
+    <h2>
+        Cluster Categories
+    </h2>
+
+    <div class="ml-panel">
+
+        <div class="ml-item">
+            <span>Credential Exposure</span>
+            <strong>Hardcoded passwords, API keys, secrets</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Injection Risks</span>
+            <strong>SQL injection and other injection patterns</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Client-Side Risks</span>
+            <strong>XSS, innerHTML, JavaScript vulnerabilities</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Configuration Risks</span>
+            <strong>Debug mode, unsafe configuration settings</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Transport Security</span>
+            <strong>Insecure HTTP references</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Other</span>
+            <strong>Findings that don't match a specific cluster</strong>
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="actions">
+
+    <a href="/" class="button primary">
+        Start a Security Scan →
+    </a>
+
+    <a href="/ml" class="button">
+        ML Model Details
+    </a>
+
+</section>
+
+
+{% elif page == 'privacy' %}
+
+
+<!-- =====================================================
+     PRIVACY INFO PAGE
+     ===================================================== -->
+
+<section class="card">
+
+    <div class="eyebrow">
+        PRIVACY &amp; CODE SEAL
+    </div>
+
+    <h2>
+        Code Privacy Architecture
+    </h2>
+
+    <p>
+        SecureCode AI is designed with privacy in mind. Raw source
+        code is never stored permanently, transmitted externally,
+        or placed on a blockchain. The system separates source-code
+        analysis from cryptographic integrity proof generation.
+    </p>
+
+</section>
+
+
+<section class="card" style="margin-top:18px;">
+
+    <h2>
+        How Code Sealing Works
+    </h2>
+
+    <div class="ml-panel">
+
+        <div class="ml-item">
+            <span>Algorithm</span>
+            <strong>SHA-256 (Secure Hash Algorithm)</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>What Gets Hashed</span>
+            <strong>The security report — not your source code</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Reversibility</span>
+            <strong>One-way — the hash cannot be reversed to recover code</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Code Storage</span>
+            <strong>Uploaded code is deleted after scanning</strong>
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="actions">
+
+    <a href="/" class="button primary">
+        Start a Security Scan →
+    </a>
+
+    <a href="/passport" class="button">
+        Security Passport
+    </a>
+
+    <a href="/blockchain" class="button">
+        Blockchain Proof
+    </a>
+
+</section>
+
+
+{% elif page == 'blockchain' %}
+
+
+<!-- =====================================================
+     BLOCKCHAIN INFO PAGE
+     ===================================================== -->
+
+<section class="card">
+
+    <div class="eyebrow">
+        BLOCKCHAIN INTEGRITY
+    </div>
+
+    <h2>
+        Blockchain-Ready Proof System
+    </h2>
+
+    <p>
+        SecureCode AI generates tamper-evident cryptographic proofs
+        that can be anchored to a compatible blockchain (Polygon / Ethereum).
+        This allows third parties to independently verify that a security
+        report has not been altered after generation.
+    </p>
+
+</section>
+
+
+<section class="card" style="margin-top:18px;">
+
+    <h2>
+        Proof Architecture
+    </h2>
+
+    <div class="ml-panel">
+
+        <div class="ml-item">
+            <span>Hash Algorithm</span>
+            <strong>SHA-256</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Target Networks</span>
+            <strong>Polygon / Ethereum</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>What Gets Proven</span>
+            <strong>The Security Passport fingerprint — not the source code</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Proof Status</span>
+            <strong>READY_FOR_BLOCKCHAIN (on-chain submission is a future step)</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Verification</span>
+            <strong>Deterministic — re-hashing the same report produces the same proof</strong>
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="disclaimer">
+
+    <strong>
+        ⚠ Hackathon Prototype Notice
+    </strong>
+
+    <p>
+        The current implementation generates a blockchain-ready
+        cryptographic proof. Actual on-chain transaction submission
+        is planned for a future release.
+    </p>
+
+</section>
+
+
+<section class="actions">
+
+    <a href="/" class="button primary">
+        Start a Security Scan →
+    </a>
+
+    <a href="/passport" class="button">
+        Security Passport
+    </a>
+
+    <a href="/privacy" class="button">
+        Privacy Architecture
+    </a>
+
+</section>
+
+
+{% elif page == 'passport' %}
+
+
+<!-- =====================================================
+     PASSPORT INFO PAGE
+     ===================================================== -->
+
+<section class="card">
+
+    <div class="eyebrow">
+        SECURITY PASSPORT
+    </div>
+
+    <h2>
+        Security Verification Passport
+    </h2>
+
+    <p>
+        Every scan generates a Security Passport — a structured
+        identity document containing the project name, security
+        score, findings count, file count, and a SHA-256 report
+        hash. This passport serves as a verifiable summary of
+        the security assessment.
+    </p>
+
+</section>
+
+
+<section class="card" style="margin-top:18px;">
+
+    <h2>
+        Passport Contents
+    </h2>
+
+    <div class="ml-panel">
+
+        <div class="ml-item">
+            <span>Passport ID</span>
+            <strong>Unique identifier derived from the report hash (e.g. CS-A1B2C3D4E5F6)</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Project / Website</span>
+            <strong>Name of the scanned project</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Security Score</span>
+            <strong>0–100 score based on severity of findings</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Files Scanned</span>
+            <strong>Total number of source files analyzed</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Findings Count</span>
+            <strong>Total number of potential vulnerabilities detected</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Report Hash</span>
+            <strong>SHA-256 fingerprint of the full report</strong>
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="actions">
+
+    <a href="/" class="button primary">
+        Start a Security Scan →
+    </a>
+
+    <a href="/blockchain" class="button">
+        Blockchain Proof
+    </a>
+
+</section>
+
+
+{% elif page == 'reports' %}
+
+
+<!-- =====================================================
+     REPORTS INFO PAGE
+     ===================================================== -->
+
+<section class="card">
+
+    <div class="eyebrow">
+        AUDIT REPORTS
+    </div>
+
+    <h2>
+        Security Audit Reports
+    </h2>
+
+    <p>
+        Every security scan generates a detailed audit report
+        containing vulnerability findings, ML classifications,
+        cluster analysis, a Security Passport, and a blockchain-ready
+        integrity proof.
+    </p>
+
+    <p style="margin-top:12px;">
+        {% if session.get('user_id') %}
+
+            Your past audit reports are saved and accessible from
+            your dashboard.
+
+        {% else %}
+
+            Create an account and log in to save your audit history
+            and access past reports.
+
+        {% endif %}
+    </p>
+
+</section>
+
+
+<section class="actions">
+
+    {% if session.get('user_id') %}
+
+        <a href="/dashboard" class="button primary">
+            View My Dashboard →
+        </a>
+
+    {% else %}
+
+        <a href="/register" class="button primary">
+            Create Account →
+        </a>
+
+        <a href="/login" class="button">
+            Login
+        </a>
+
+    {% endif %}
+
+    <a href="/" class="button">
+        Start a New Scan
+    </a>
+
+</section>
+
+
+{% elif page == 'about' %}
+
+
+<!-- =====================================================
+     ABOUT / ARCHITECTURE INFO PAGE
+     ===================================================== -->
+
+<section class="card">
+
+    <div class="eyebrow">
+        ARCHITECTURE
+    </div>
+
+    <h2>
+        Platform Architecture
+    </h2>
+
+    <p>
+        SecureCode AI is built as a lightweight, modular Python
+        application with minimal external dependencies. The entire
+        platform runs on Flask with an embedded SQLite database.
+    </p>
+
+</section>
+
+
+<section class="card" style="margin-top:18px;">
+
+    <h2>
+        System Components
+    </h2>
+
+    <div class="ml-panel">
+
+        <div class="ml-item">
+            <span>Web Framework</span>
+            <strong>Flask (Python)</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Database</span>
+            <strong>SQLite with foreign key enforcement</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Static Scanner</span>
+            <strong>Regex-based pattern matching engine</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>ML Classifier</span>
+            <strong>9-tree Random Forest ensemble (pure Python)</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Cryptographic Layer</span>
+            <strong>SHA-256 via Python hashlib</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Authentication</span>
+            <strong>Werkzeug password hashing (PBKDF2)</strong>
+        </div>
+
+        <div class="ml-item">
+            <span>Target Blockchain</span>
+            <strong>Polygon / Ethereum (proof-ready)</strong>
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="card" style="margin-top:18px;">
+
+    <h2>
+        Team Conflux
+    </h2>
+
+    <p>
+        Built for the HackIndia AI &amp; Web3 Builders Hackathon 2026.
+    </p>
+
+</section>
+
+
+<section class="actions">
+
+    <a href="/" class="button primary">
+        Start a Security Scan →
+    </a>
+
+    <a href="/ai-engine" class="button">
+        AI Engine
+    </a>
+
+    <a href="/blockchain" class="button">
+        Blockchain Proof
+    </a>
+
+</section>
+
+
+{% elif page == 'results' %}
 
 
 <!-- =====================================================
@@ -1379,7 +2178,9 @@
         </div>
 
         <h1 class="project-name">
-            {{ data.filename }}
+            {% if data is defined %}
+                {{ data.filename }}
+            {% endif %}
         </h1>
 
         <p class="subtitle">
@@ -2101,7 +2902,7 @@
             Website / Project:
         </strong>
 
-        {{ data.passport.website_name }}
+        {{ data.passport.website }}
 
     </div>
 
@@ -2112,7 +2913,7 @@
             Score:
         </strong>
 
-        {{ data.passport.score }}/100
+        {{ data.passport.security_score }}/100
 
     </div>
 

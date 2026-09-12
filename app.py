@@ -5,7 +5,8 @@ from flask import (
     redirect,
     url_for,
     session,
-    flash
+    flash,
+    g
 )
 
 import os
@@ -49,11 +50,19 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def get_db():
 
-    connection = sqlite3.connect(DATABASE)
+    if 'db' not in g:
+        g.db = sqlite3.connect(DATABASE)
+        g.db.row_factory = sqlite3.Row
+        g.db.execute("PRAGMA foreign_keys = ON;")
 
-    connection.row_factory = sqlite3.Row
+    return g.db
 
-    return connection
+
+@app.teardown_appcontext
+def close_db(exception=None):
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
 
 
 def init_db():
@@ -114,17 +123,20 @@ def init_db():
             created_at TEXT NOT NULL,
 
             FOREIGN KEY(user_id)
-                REFERENCES users(id)
+                REFERENCES users(id) ON DELETE CASCADE
 
         )
     """)
 
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_audits_user_id ON audits(user_id);
+    """)
+
     connection.commit()
 
-    connection.close()
 
-
-init_db()
+with app.app_context():
+    init_db()
 
 
 # =========================================================
@@ -473,8 +485,6 @@ def save_audit(user_id, data):
 
     connection.commit()
 
-    connection.close()
-
 
 # =========================================================
 # HOME
@@ -556,8 +566,6 @@ def register():
 
         if existing_user:
 
-            connection.close()
-
             flash(
                 "An account with this email already exists.",
                 "error"
@@ -594,8 +602,6 @@ def register():
         )
 
         connection.commit()
-
-        connection.close()
 
         flash(
             "Account created successfully. Please login.",
@@ -649,8 +655,6 @@ def login():
             """,
             (email,)
         ).fetchone()
-
-        connection.close()
 
         if (
             user
@@ -763,8 +767,6 @@ def dashboard():
         (user_id,)
     ).fetchone()
 
-    connection.close()
-
     return render_template(
         "dashboard.html",
 
@@ -802,8 +804,6 @@ def view_history(audit_id):
             session["user_id"]
         )
     ).fetchone()
-
-    connection.close()
 
     if not audit_record:
 
