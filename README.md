@@ -43,7 +43,7 @@ SecureCode AI is a web-based code security scanner that helps developers find vu
 | ML Classifier        | Custom Random Forest — pure Python, zero external ML dependencies |
 | Cryptography         | SHA-256 via Python `hashlib`              |
 | Authentication       | Werkzeug (PBKDF2 password hashing)        |
-| Target Blockchain    | Polygon / Ethereum (proof-ready)          |
+| Target Blockchain    | Blockchain- ready cryptograph (proof-ready) |
 
 ---
 
